@@ -605,12 +605,8 @@ function askConfirm(text, opt){
   });
 }
 
-/* ================= 後端：Supabase（還沒填金鑰時，用範例資料預覽） ================= */
-// Supabase 後台 → Project Settings → API Keys 裡的 publishable（anon）key
-// 這把 key 本來就是公開的，可以放在網頁裡；secret / service_role key 絕對不要放進來
 const SUPABASE_URL = 'https://wjrncnawkzptdsfhzefg.supabase.co';
-const SUPABASE_KEY = '';   // ← 把 publishable key 貼在這對引號中間
-// 帳號會轉成「帳號@這個網域」給 Supabase 登入用；要和資料庫第 9 段一致，不要改
+const SUPABASE_KEY = 'sb_publishable_SgB1YEmcF4phewUhaVxIyQ_gmyHhHLQ';
 const ACCOUNT_DOMAIN = 'koala-post.app';
 
 const IS_LIVE = !!SUPABASE_KEY;
@@ -618,7 +614,6 @@ const sb = (IS_LIVE && window.supabase)
   ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {auth:{persistSession:true, autoRefreshToken:true, storageKey:'koalaPostAuth'}})
   : null;
 
-// 地址和備註存進資料庫前先編碼（b1: 開頭），在後台不會一眼看到原文；讀出來時再轉回來
 const B64 = {
   enc(s){
     s = String(s == null ? '' : s);
@@ -653,7 +648,6 @@ function checkNickname(n){
   if(n.length > 30) fail('暱稱最多 30 個字');
 }
 
-// 把 Supabase 的英文錯誤轉成給使用者看的中文
 function sbErr(error){
   const m = String((error && (error.message || error.error_description)) || error || '');
   const code = (error && error.code) || '';
@@ -682,7 +676,6 @@ const toPerson = r => ({id:r.id, name:r.name, channel:r.channel, region:r.region
 const toMail = r => ({id:r.id, date:r.date || '', kind:r.kind, direction:r.direction, personId:r.person_id || '', channel:r.channel, region:r.region, place:r.place, pcId:r.pc_id || '', note:B64.dec(r.note), created:r.created_at || '', replyOf:r.reply_of || ''});
 const str = (v, max) => String(v == null ? '' : v).trim().slice(0, max || 2000);
 
-// 一次最多讀 1000 筆，資料多的時候分批讀完
 async function fetchAll(table, uid){
   const out = [], size = 1000;
   for(let from = 0; ; from += size){
@@ -740,7 +733,6 @@ const Live = {
     return toProfile(row);
   },
 
-  // 新增信件時預設勾選的類型和管道
   async savePrefs(p){
     const u = await currentUser();
     const kind = p.defaultKind, channel = p.defaultChannel;
@@ -753,11 +745,10 @@ const Live = {
     const u = await currentUser();
     newPw = String(newPw || '');
     checkPassword(newPw);
-    // 先用目前的密碼驗證一次，確定是本人
     const {error} = await sb.auth.signInWithPassword({email:u.email, password:String(oldPw || '')});
     if(error) fail(/Invalid login credentials/i.test(error.message) ? '目前的密碼不正確' : sbErr(error).message.replace(/^MSG:/, ''));
     must(await sb.auth.updateUser({password:newPw, data:{must_change:false}}));
-    try{ await sb.auth.signOut({scope:'others'}); }catch(e){}   // 其他手機或電腦要重新登入
+    try{ await sb.auth.signOut({scope:'others'}); }catch(e){}
     return {token:'ok'};
   },
 
