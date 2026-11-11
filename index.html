@@ -240,7 +240,17 @@ textarea.in.addr{min-height:64px}
 .loading{text-align:center;padding:60px 0;color:var(--deep)}
 .loading .koala{width:120px;height:100px;object-fit:contain;animation:bob 1.2s ease-in-out infinite}
 @keyframes bob{50%{transform:translateY(-8px)}}
-.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:10px 18px;border-radius:999px;font-size:14px;opacity:0;transition:.25s;z-index:60;pointer-events:none}
+.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%) translateY(20px);background:var(--paper);color:var(--ink);border:2px solid var(--line);box-shadow:0 4px 0 var(--shadow);padding:10px 18px;border-radius:18px;font-size:14px;line-height:1.5;text-align:center;width:max-content;max-width:calc(100% - 40px);opacity:0;transition:.25s;z-index:80;pointer-events:none}
+.toast.err{background:#fde3d6;border-color:#f6c3ad;color:#8a3b30}
+/* 確認對話框（取代瀏覽器內建的 confirm） */
+.dialog{position:fixed;inset:0;z-index:70;background:rgba(60,72,110,.35);display:flex;align-items:center;justify-content:center;padding:20px}
+.dialog-box{width:100%;max-width:340px;padding:20px 20px 18px;text-align:center;animation:pop .18s ease}
+.dialog-box .dlg-koala img{width:76px;height:auto;display:block;margin:0 auto 4px}
+.dialog-box h3{margin:6px 0 0;font-weight:400;font-size:18px}
+.dialog-box p{margin:8px 0 0;line-height:1.6;white-space:pre-line}
+.dialog-box .dlg-actions{display:flex;gap:10px;justify-content:center;margin-top:18px}
+.dialog-box .dlg-actions .btn{min-width:96px;justify-content:center}
+@keyframes pop{from{transform:scale(.94);opacity:0}to{transform:none;opacity:1}}
 .toast.show{opacity:1;transform:translateX(-50%)}
 .demo-note{font-size:12px;text-align:center;color:var(--deep);margin:4px 0 0}
 
@@ -374,7 +384,8 @@ textarea.in.addr{min-height:64px}
 </script>
 <button class="btn fab" data-act="newMail" id="fab"></button>
 <div id="modal" class="modal hidden"></div>
-<div id="toast" class="toast"></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<div id="dialog" class="dialog hidden"></div>
 
 <datalist id="countries"></datalist>
 
@@ -567,10 +578,39 @@ function fallbackCopy(t, done){
   let ok = false; try{ ok = document.execCommand('copy'); }catch(e){}
   ta.remove(); ok ? done() : toast('無法自動複製，請長按地址手動複製');
 }
-function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),2200); }
+function toast(msg){
+  const t=$('#toast'); t.textContent=msg;
+  t.classList.toggle('err', /失敗|錯誤|不正確|不一樣|請填寫|無法/.test(msg));
+  t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'), t.classList.contains('err') ? 3200 : 2200);
+}
+// 和畫面同風格的確認視窗，回傳 true（確定）或 false（取消）
+function askConfirm(text, opt){
+  opt = opt || {};
+  return new Promise(resolve => {
+    const d = $('#dialog');
+    d.innerHTML = `<div class="paper dialog-box" role="alertdialog" aria-modal="true">
+      <div class="dlg-koala">${logoMarkup()}</div>
+      ${opt.title ? `<h3>${esc(opt.title)}</h3>` : ''}
+      <p>${esc(text)}</p>
+      <div class="dlg-actions">
+        <button class="btn ghost" data-dlg="0">${esc(opt.cancel || '取消')}</button>
+        <button class="btn ${opt.danger ? 'danger' : 'blue'}" data-dlg="1">${opt.danger ? ic('trash','s') : ''}${esc(opt.ok || '確定')}</button>
+      </div></div>`;
+    d.classList.remove('hidden');
+    const onKey = e => { if(e.key === 'Escape'){ e.stopImmediatePropagation(); done(false); } };
+    const done = v => { d.classList.add('hidden'); d.innerHTML = ''; d.onclick = null; document.removeEventListener('keydown', onKey, true); resolve(v); };
+    document.addEventListener('keydown', onKey, true);
+    d.onclick = e => { const b = e.target.closest('[data-dlg]'); if(b) done(b.dataset.dlg === '1'); else if(e.target === d) done(false); };
+    const okBtn = d.querySelector('[data-dlg="1"]'); if(okBtn) okBtn.focus();
+  });
+}
 
+/* ================= 後端：Supabase（還沒填金鑰時，用範例資料預覽） ================= */
+// Supabase 後台 → Project Settings → API Keys 裡的 publishable（anon）key
+// 這把 key 本來就是公開的，可以放在網頁裡；secret / service_role key 絕對不要放進來
 const SUPABASE_URL = 'https://wjrncnawkzptdsfhzefg.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_SgB1YEmcF4phewUhaVxIyQ_gmyHhHLQ'; 
+const SUPABASE_KEY = '';   // ← 把 publishable key 貼在這對引號中間
+// 帳號會轉成「帳號@這個網域」給 Supabase 登入用；要和資料庫第 9 段一致，不要改
 const ACCOUNT_DOMAIN = 'koala-post.app';
 
 const IS_LIVE = !!SUPABASE_KEY;
@@ -578,6 +618,7 @@ const sb = (IS_LIVE && window.supabase)
   ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {auth:{persistSession:true, autoRefreshToken:true, storageKey:'koalaPostAuth'}})
   : null;
 
+// 地址和備註存進資料庫前先編碼（b1: 開頭），在後台不會一眼看到原文；讀出來時再轉回來
 const B64 = {
   enc(s){
     s = String(s == null ? '' : s);
@@ -612,6 +653,7 @@ function checkNickname(n){
   if(n.length > 30) fail('暱稱最多 30 個字');
 }
 
+// 把 Supabase 的英文錯誤轉成給使用者看的中文
 function sbErr(error){
   const m = String((error && (error.message || error.error_description)) || error || '');
   const code = (error && error.code) || '';
@@ -634,7 +676,8 @@ async function currentUser(){
   return u;
 }
 
-const toProfile = r => ({id:r.id, account:r.account, nickname:r.nickname, address:B64.dec(r.address), addressEn:B64.dec(r.address_en), created:r.created_at || ''});
+const toProfile = r => ({id:r.id, account:r.account, nickname:r.nickname, address:B64.dec(r.address), addressEn:B64.dec(r.address_en),
+  defaultKind:r.default_kind || '明信片', defaultChannel:r.default_channel || 'Postcrossing', created:r.created_at || ''});
 const toPerson = r => ({id:r.id, name:r.name, channel:r.channel, region:r.region, place:r.place, address:B64.dec(r.address), note:B64.dec(r.note), created:r.created_at || ''});
 const toMail = r => ({id:r.id, date:r.date || '', kind:r.kind, direction:r.direction, personId:r.person_id || '', channel:r.channel, region:r.region, place:r.place, pcId:r.pc_id || '', note:B64.dec(r.note), created:r.created_at || '', replyOf:r.reply_of || ''});
 const str = (v, max) => String(v == null ? '' : v).trim().slice(0, max || 2000);
@@ -694,6 +737,15 @@ const Live = {
     const row = must(await sb.from('profiles')
       .update({nickname, address:B64.enc(str(p.address)), address_en:B64.enc(str(p.addressEn))})
       .eq('id', u.id).select().single());
+    return toProfile(row);
+  },
+
+  // 新增信件時預設勾選的類型和管道
+  async savePrefs(p){
+    const u = await currentUser();
+    const kind = p.defaultKind, channel = p.defaultChannel;
+    if(['信件','明信片'].indexOf(kind) < 0 || CHANNELS.indexOf(channel) < 0) fail('預設值不正確');
+    const row = must(await sb.from('profiles').update({default_kind:kind, default_channel:channel}).eq('id', u.id).select().single());
     return toProfile(row);
   },
 
@@ -799,7 +851,7 @@ const Demo = (() => {
   };
   const clone = () => JSON.parse(JSON.stringify(db));
   const up = (key,o) => { if(!o.id){ o.id=key[0]+Date.now(); o.created=new Date().toISOString(); db[key].push(o);} else { const i=db[key].findIndex(x=>x.id===o.id); db[key][i]={...db[key][i],...o}; } return o.id; };
-  let me = {id:'u1', account:'koala', nickname:'無尾熊', address:'樹葉鎮樹頂動物園\n尤加利巷 5 號\n無尾熊郵局', addressEn:'Koala Post\nNo. 5, Eucalyptus Lane\nTreetop Zoo, Leafy Town 12345', created:'2026-11-09'};
+  let me = {id:'u1', account:'koala', nickname:'無尾熊', defaultKind:'明信片', defaultChannel:'Postcrossing', address:'樹葉鎮樹頂動物園\n尤加利巷 5 號\n無尾熊郵局', addressEn:'Koala Post\nNo. 5, Eucalyptus Lane\nTreetop Zoo, Leafy Town 12345', created:'2026-11-09'};
   let pw = 'koala123';
   const ok = () => ({token:'demo', profile:{...me}});
   return {
@@ -808,6 +860,7 @@ const Demo = (() => {
     register: f => { checkAccount(String(f.account).trim()); checkNickname(String(f.nickname||'').trim()); checkPassword(String(f.password)); me = {...me, nickname:f.nickname, account:String(f.account).trim(), address:''}; pw = f.password; return ok(); },
     getData: () => ({...clone(), profile:{...me}}),
     saveProfile: p => { me = {...me, nickname:p.nickname, address:p.address, addressEn:p.addressEn}; return {...me}; },
+    savePrefs: p => { me = {...me, defaultKind:p.defaultKind, defaultChannel:p.defaultChannel}; return {...me}; },
     changePassword: (o,n) => { if(o !== pw) fail('目前的密碼不正確'); checkPassword(String(n)); pw = n; return {token:'demo'}; },
     savePerson: p => ({id:up('people',{...p}), data:clone()}),
     deletePerson: id => { db.people=db.people.filter(x=>x.id!==id); db.mails.forEach(m => { if(m.personId===id) m.personId=''; }); return {id,data:clone()}; },
@@ -919,8 +972,8 @@ async function startApp(){
   }catch(err){ if(err.message !== 'NEED_LOGIN'){ toast('讀取失敗：' + err.message); render(); } }
 }
 
-function logout(){
-  if(!confirm('確定要登出嗎？')) return;
+async function logout(){
+  if(!await askConfirm('確定要登出嗎？', {ok:'登出'})) return;
   saveToken(''); PROFILE = null; DB = {people:[], mails:[]}; view = 'home';
   if(sb) sb.auth.signOut({scope:'local'}).catch(() => {});
   showAuth('login', '已登出');
@@ -1146,6 +1199,14 @@ function meHTML(){
     </form>
   </section>
   <section class="paper card">
+    <h3>${ic('letter')}新增信件的預設</h3>
+    <p class="muted small" style="margin:-4px 0 12px">按「新增信件」時，會先幫你選好這兩項</p>
+    <form id="prefForm">
+      <div class="field"><label>類型</label>${seg('defKind',['信件','明信片'],p.defaultKind || '明信片')}</div>
+      <div class="field" style="margin-bottom:0"><label>管道</label>${seg('defChannel',CHANNELS,p.defaultChannel || 'Postcrossing')}</div>
+    </form>
+  </section>
+  <section class="paper card">
     <h3>${ic('lock')}修改密碼</h3>
     <form id="pwForm">
       <div class="field"><label>目前的密碼</label><input class="in" type="password" name="old" autocomplete="current-password" required></div>
@@ -1166,6 +1227,20 @@ function bindMe(){
       PROFILE = await call('saveProfile', {nickname:f.nickname.value.trim(), address:f.address.value.trim(), addressEn:f.addressEn.value.trim()});
       render(); toast('資料已儲存');
     }catch(err){ btn.disabled = false; if(err.message !== 'NEED_LOGIN') toast(err.message); }
+  });
+  // 預設值：點一下就儲存
+  const pr = $('#prefForm');
+  pr.addEventListener('change', async () => {
+    const want = {defaultKind: pr.defKind.value, defaultChannel: pr.defChannel.value};
+    try{
+      PROFILE = await call('savePrefs', want);
+      toast('已設為預設：' + want.defaultKind + '・' + want.defaultChannel);
+    }catch(err){
+      if(err.message !== 'NEED_LOGIN') toast('儲存失敗：' + err.message);
+      const p = PROFILE || {};
+      pr.querySelectorAll('[name=defKind]').forEach(r => r.checked = r.value === (p.defaultKind || '明信片'));
+      pr.querySelectorAll('[name=defChannel]').forEach(r => r.checked = r.value === (p.defaultChannel || 'Postcrossing'));
+    }
   });
   const g = $('#pwForm');
   g.addEventListener('submit', async e => {
@@ -1201,7 +1276,9 @@ const readPlace = f => f.region.value==='台灣' ? f.city.value : f.country.valu
 /* ---------- 信件表單 ---------- */
 function mailForm(m = {}){
   const isNew = !m.id;
-  m = {date:today(), kind:'明信片', direction:'收到', channel:'Postcrossing', region:'海外', place:'', pcId:'', note:'', personId:'', ...m};
+  const P = PROFILE || {};
+  const defKind = P.defaultKind || '明信片', defChannel = P.defaultChannel || 'Postcrossing';
+  m = {date:today(), kind:defKind, direction:'收到', channel:defChannel, region: defChannel==='Postcrossing' ? '海外' : '台灣', place:'', pcId:'', note:'', personId:'', ...m};
   // 編輯時，如果這封信已經建立過回信，就不再顯示「要回信」
   const replied = !isNew && DB.mails.some(x => x.replyOf === m.id);
   const opts = [...DB.people].sort((a,b) => a.name.localeCompare(b.name,'zh-Hant'))
@@ -1497,7 +1574,7 @@ const FEATS = [
   {h:'找信', p:'「信件」分頁可以依類型、收到或寄出、管道、地區篩選，也能搜尋名字、地點、編號和備註。點一封信可以看詳細內容、編輯或刪除。', m:svg(232,list,'信件列表與篩選')},
   {h:'待寄出', tag:'新功能', p:'還沒寄的信先記成「待寄出」，免得忘記回信。寄出後按「已寄出」，日期會自動改成今天。要一次寄好幾封時，在總覽的待寄出勾選要寄的信（或按「全選」），再按「勾選的已寄出」。', m:svg(186,pending,'待寄出清單，可以勾選多封')},
   {h:'人物', tag:'新功能', p:'記錄你的筆友和卡友：管道、來自哪裡、地址和備註。每個人會顯示收到、寄出和交換次數。如果最後一封是對方寄來的，名字旁會出現「待回覆」；在篩選選「待回覆」，等最久的人會排在最前面。點進去可以看所有往來，也能複製他的地址。', m:svg(206,people,'人物列表與待回覆標籤')},
-  {h:'我的資料', p:'在「我的」可以改暱稱、中文地址和英文地址。按複製按鈕就能把自己的地址傳給筆友。這裡也能修改密碼和登出。', m:svg(230,me,'我的資料頁面')},
+  {h:'我的資料', p:'在「我的」可以改暱稱、中文地址和英文地址，也能設定新增信件時預設的類型和管道。按複製按鈕就能把自己的地址傳給筆友。這裡也能修改密碼和登出。', m:svg(230,me,'我的資料頁面')},
   {h:'忘記密碼', p:'請聯絡無尾熊郵局管理員，告訴他你的帳號。管理員會給你一組臨時密碼，用它登入後會自動跳到「我的」頁面，請馬上改成新密碼。', m:svg(160,forgot,'用臨時密碼登入後修改密碼')}
 ];
 
@@ -1672,12 +1749,12 @@ document.addEventListener('click', async e => {
   if(act==='editPerson') personForm(person(id));
   if(act==='mailFor'){ const p = person(id); mailForm({personId:p.id, channel:p.channel, region:p.region, place:p.place}); }
   if(act==='delMail'){
-    if(!confirm('確定要刪除這筆信件紀錄嗎？')) return;
+    if(!await askConfirm('確定要刪除這筆信件紀錄嗎？', {title:'刪除信件', ok:'刪除', danger:true})) return;
     try{ const r = await call('deleteMail', id); DB = r.data; closeModal(); render(); toast('已刪除'); }catch(err){ toast('刪除失敗'); }
   }
   if(act==='delPerson'){
     const n = stat(id).total;
-    if(!confirm(n ? `這位有 ${n} 筆信件紀錄，刪除人物後信件會保留但不再連結。確定刪除？` : '確定要刪除這位嗎？')) return;
+    if(!await askConfirm(n ? `這位有 ${n} 筆信件紀錄。\n刪除人物後信件會保留，但不再連結。` : '確定要刪除這位嗎？', {title:'刪除人物', ok:'刪除', danger:true})) return;
     try{ const r = await call('deletePerson', id); DB = r.data; closeModal(); render(); toast('已刪除'); }catch(err){ toast('刪除失敗'); }
   }
 });
