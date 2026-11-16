@@ -103,6 +103,59 @@ button,input,select,textarea{font:inherit;color:inherit}
 .t-收到{--c:#e9f6dc} .t-寄出{--c:#f3e4f0} .t-待寄出{--c:#fbe7a8}
 .reply-badge{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:#a2482f;background:#fde3d6;border-radius:999px;padding:2px 10px;margin:3px 0 1px;white-space:nowrap}
 .reply-badge .ic{width:13px;height:13px}
+.friend-badge,.transit-badge{display:inline-flex;align-items:center;gap:4px;font-size:12px;border-radius:999px;padding:2px 10px;margin:3px 4px 1px 0;white-space:nowrap}
+.friend-badge{color:#3d6b12;background:#e6f7c8}
+.name-row{display:flex;align-items:center;gap:6px;min-width:0}
+.name-row .name{min-width:0}
+.name-row .friend-badge{flex:none;margin:0}
+.friend-badge.only-ic{padding:3px 6px}
+.friend-badge.only-ic .ic{width:14px;height:14px;stroke-width:2.6}
+.friend-badge.wait{color:#6d4c0c;background:#fbe7a8}
+.transit-badge{color:var(--deep);background:#e9f0fd}
+.friend-badge .ic,.transit-badge .ic{width:13px;height:13px}
+.friend-box{background:#f6f2e9;border-radius:16px;padding:12px 14px;margin:12px 0 0}
+.friend-box .fb-title{display:flex;align-items:center;gap:6px;font-size:15px;flex-wrap:wrap}
+.friend-box .fb-form{display:flex;gap:8px;margin-top:8px}
+.friend-box .fb-form .in{flex:1;text-transform:uppercase;letter-spacing:3px}
+.friend-box .fb-line{font-size:14px;margin:8px 0 0}
+.friend-box .addr-box{background:#fff;margin-top:4px}
+.friend-box .fb-acts{display:flex;gap:6px;flex-wrap:wrap}
+.friend-box > :first-child{margin-top:0}
+.pd-acts{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;margin:4px 0 2px}
+.pd-acts .btn{padding:8px 12px;font-size:14px;gap:4px}
+.hstats{display:inline-flex;gap:6px;margin-left:4px}
+.fstat.sm{background:#f6f2e9;padding:3px 10px;gap:4px}
+.fstat.sm span{font-size:12px}
+.fstat.sm b{font-size:16px}
+.fstat{background:#fff;border-radius:12px;padding:6px 14px;display:inline-flex;align-items:baseline;gap:6px}
+.fstat span{font-size:13px;color:var(--muted)}
+.fstat b{font-size:20px;font-weight:400;color:var(--deep)}
+.transit-note{display:flex;align-items:center;gap:6px;background:#e9f0fd;color:var(--deep);border-radius:12px;padding:8px 12px;font-size:14px;margin:8px 0 0}
+.about-hint{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--deep);background:#e9f0fd;border-radius:12px;padding:7px 12px;margin:-2px 0 10px}
+#aboutForm textarea.about-in{min-height:130px;height:130px;resize:vertical;line-height:1.6}
+.code-row{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#f6f2e9;border-radius:16px;padding:12px 14px;margin-bottom:8px}
+.code-big{font-size:28px;letter-spacing:6px;color:var(--deep)}
+.code-acts{display:flex;flex-direction:column;gap:6px;align-items:flex-end}
+.code-acts .copy-btn{margin:0}
+.toggle{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 2px;border-top:1.5px dashed var(--line);font-size:15px;cursor:pointer}
+.toggle:first-child{border-top:0}
+.toggle input{appearance:none;-webkit-appearance:none;width:44px;height:26px;border-radius:999px;background:#e7e3ee;position:relative;cursor:pointer;transition:.2s;flex:none;margin:0}
+.toggle input::after{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2);transition:.2s}
+.toggle input:checked{background:var(--leaf)}
+.toggle input:checked::after{left:21px}
+.invite{border-top:1.5px dashed var(--line);padding:12px 0 4px}
+.invite .who{margin-bottom:8px}
+.invite .bar{display:flex;gap:8px;justify-content:flex-end;margin-top:8px}
+.fsub{font-size:14px;color:var(--muted);margin:16px 0 4px}
+.notice{display:flex;align-items:center;gap:10px;padding:12px 16px;margin:14px 0;cursor:pointer}
+.notice .grow{flex:1;min-width:0}
+.notice .sub{font-size:13px;color:var(--muted)}
+.tab .dot-new{width:8px;height:8px;border-radius:50%;background:#f0906a;flex:none;align-self:flex-start;margin:1px 0 0 -3px}
+.reply-note .grow{flex:1;min-width:0;display:flex;align-items:center;gap:6px}
+.note-btn{border:0;cursor:pointer;flex:none;background:rgba(255,255,255,.7);color:inherit;border-radius:999px;padding:4px 10px;font-size:12px;white-space:nowrap}
+.transit-note.solo{margin:12px 0 0}
+.muted-line{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px;color:var(--muted);margin:10px 2px 0}
+.muted-line .note-btn{background:#e9f0fd;color:var(--deep)}
 .reply-note{display:flex;align-items:center;gap:6px;background:#fde3d6;color:#a2482f;border-radius:12px;padding:8px 12px;font-size:14px;margin:12px 0 0}
 
 /* 篩選 */
@@ -162,7 +215,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 @media(min-width:640px){.modal{align-items:center;padding:20px}.sheet{border-radius:26px}}
 @keyframes up{from{transform:translateY(30px);opacity:0}to{transform:none;opacity:1}}
 .sheet-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-.sheet-head h3{margin:0;font-weight:400;font-size:20px;display:flex;align-items:center;gap:8px}
+.sheet-head h3{margin:0;font-weight:400;font-size:20px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0}
 .x{border:0;background:#f1ede4;width:36px;height:36px;border-radius:50%;cursor:pointer;display:grid;place-items:center}
 .field{margin-bottom:14px}
 .field > label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
@@ -259,7 +312,15 @@ textarea.in.addr{min-height:64px}
 
 
 /* 使用說明視窗 */
-.help-btn{margin-left:auto;align-self:flex-start;margin-top:6px;border:0;cursor:pointer;display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,.7);color:var(--deep);border-radius:999px;padding:7px 12px;font-size:14px;flex:none}
+.top-btns{margin-left:auto;align-self:flex-start;margin-top:6px;display:flex;flex-direction:column;align-items:stretch;gap:6px;flex:none}
+.top-btns .help-btn{justify-content:center;position:relative}
+.ann-dot{width:8px;height:8px;border-radius:50%;background:#f0906a;flex:none;align-self:flex-start;margin:0 0 0 -1px}
+.ann{padding:14px 0;border-top:1.5px dashed var(--line)}
+.ann:first-of-type{border-top:0;padding-top:4px}
+.ann-date{display:inline-block;font-size:12px;color:var(--deep);background:#e9f0fd;border-radius:999px;padding:2px 10px}
+.ann h4{margin:8px 0 6px;font-weight:400;font-size:17px}
+.ann-body{margin:0;white-space:pre-line;line-height:1.75}
+.help-btn{border:0;cursor:pointer;display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,.7);color:var(--deep);border-radius:999px;padding:7px 12px;font-size:14px;flex:none}
 .help-link{margin-top:10px;border:0;background:none;cursor:pointer;color:var(--deep);font-size:14px;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:4px}
 .help-tabs{display:flex;gap:6px;background:#f3efe6;border-radius:999px;padding:4px;margin:0 0 14px}
 .help-tabs button{flex:1;border:0;background:none;border-radius:999px;padding:8px 0;cursor:pointer;color:var(--muted);font-size:15px}
@@ -340,7 +401,10 @@ textarea.in.addr{min-height:64px}
         <h1>無尾熊郵局</h1>
         <p>收到的每一封信，都收在這裡</p>
       </div>
-      <button class="help-btn" data-act="help" aria-label="使用說明"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M9.6 9.6a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .8-1 1.5v.6"/><path d="M12 17v.1"/></g></svg><span>說明</span></button>
+      <div class="top-btns">
+        <button class="help-btn" data-act="help" aria-label="使用說明"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M9.6 9.6a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .8-1 1.5v.6"/><path d="M12 17v.1"/></g></svg><span>說明</span></button>
+        <button class="help-btn" data-act="announce" aria-label="公告"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10v4h3l6 4V6L7 10z"/><path d="M16.5 9a4 4 0 0 1 0 6"/><path d="M19 7a7 7 0 0 1 0 10"/></g></svg><span>公告</span><span class="ann-dot hidden" id="annDot"></span></button>
+      </div>
     </div>
     <p id="demoNote" class="demo-note hidden">目前是預覽模式（範例資料）</p>
   </header>
@@ -401,6 +465,9 @@ const CHANNELS = ['筆友','Postcrossing','其他'];
 const AVATAR_COLORS = ['#dcfba6','#b5cff8','#fdd8b4','#e8d9f7','#cdeee6','#fbe7a8'];
 
 const ICONS = {
+  megaphone:'<path d="M4 10v4h3l6 4V6L7 10z"/><path d="M16.5 9a4 4 0 0 1 0 6"/><path d="M19 7a7 7 0 0 1 0 10"/>',
+  link:'<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
+  refresh:'<path d="M19 12a7 7 0 1 1-2.1-5"/><path d="M19 4.5v4h-4"/>',
   home:'<path d="M4 11.5 12 4.5l8 7"/><path d="M6.5 10v9.5h11V10"/><path d="M10 19.5v-5h4v5"/>',
   letter:'<rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3.5 7.5 12 14l8.5-6.5"/>',
   postcard:'<rect x="2.5" y="5" width="19" height="14" rx="2"/><path d="M12.5 8.5v8"/><path d="M5.5 9.5h4M5.5 12.5h4M5.5 15.5h3"/><rect x="15" y="8" width="3.5" height="3.5"/>',
@@ -683,8 +750,15 @@ async function currentUser(){
 }
 
 const toProfile = r => ({id:r.id, account:r.account, nickname:r.nickname, address:B64.dec(r.address), addressEn:B64.dec(r.address_en),
-  defaultKind:r.default_kind || '明信片', defaultChannel:r.default_channel || 'Postcrossing', created:r.created_at || ''});
-const toPerson = r => ({id:r.id, name:r.name, channel:r.channel, region:r.region, place:r.place, address:B64.dec(r.address), note:B64.dec(r.note), created:r.created_at || ''});
+  defaultKind:r.default_kind || '明信片', defaultChannel:r.default_channel || 'Postcrossing',
+  friendCode:r.friend_code || '', about:r.about_me || '', shareAddress:!!r.share_address, shareAddressEn:!!r.share_address_en, shareStats:r.share_stats !== false,
+  created:r.created_at || ''});
+const toFriend = f => ({...f, share: f.share ? {...f.share, address:B64.dec(f.share.address), addressEn:B64.dec(f.share.addressEn)} : null});
+async function loadFriends(){
+  try{ return (must(await sb.rpc('my_friend_links')) || []).map(toFriend); }
+  catch(e){ if(e.message === 'AUTH') throw e; return []; }
+}
+const toPerson = r => ({replyDismissed:r.reply_dismissed || '', id:r.id, name:r.name, channel:r.channel, region:r.region, place:r.place, address:B64.dec(r.address), note:B64.dec(r.note), created:r.created_at || ''});
 const toMail = r => ({id:r.id, date:r.date || '', kind:r.kind, direction:r.direction, personId:r.person_id || '', channel:r.channel, region:r.region, place:r.place, pcId:r.pc_id || '', note:B64.dec(r.note), created:r.created_at || '', replyOf:r.reply_of || ''});
 const str = (v, max) => String(v == null ? '' : v).trim().slice(0, max || 2000);
 
@@ -700,18 +774,27 @@ async function fetchAll(table, uid){
 }
 async function loadAll(){
   const u = await currentUser();
-  const [prof, people, mails] = await Promise.all([
+  const [prof, people, mails, friends] = await Promise.all([
     sb.from('profiles').select('*').eq('id', u.id).maybeSingle().then(must),
     fetchAll('people', u.id),
-    fetchAll('mails', u.id)
+    fetchAll('mails', u.id),
+    loadFriends()
   ]);
   if(!prof) fail('找不到帳號資料，請聯絡管理員');
-  return {profile:toProfile(prof), people:people.map(toPerson), mails:mails.map(toMail)};
+  return {profile:toProfile(prof), people:people.map(toPerson), mails:mails.map(toMail), friends};
 }
 async function loadData(){ const d = await loadAll(); return {people:d.people, mails:d.mails}; }
 
 const Live = {
   async maintenance(){ return must(await sb.rpc('maintenance_status')) || {on:false}; },
+
+  async announcements(){
+    try{
+      const rows = must(await sb.from('announcements').select('id,publish_date,title,body')
+        .order('publish_date', {ascending:false}).order('id', {ascending:false}).limit(30));
+      return rows.map(r => ({id:r.id, date:r.publish_date, title:r.title, body:r.body}));
+    }catch(e){ return []; }
+  },
 
   async getConfig(){ return {inviteRequired: !!must(await sb.rpc('invite_required'))}; },
 
@@ -757,6 +840,45 @@ const Live = {
     return toProfile(row);
   },
 
+  // 好友
+  async getFriends(){ await currentUser(); return loadFriends(); },
+  async sendFriend(code, personId){
+    await currentUser();
+    code = str(code, 10).toUpperCase();
+    if(!/^[A-Z0-9]{6}$/.test(code)) fail('好友代碼是 6 個英文字母或數字');
+    return must(await sb.rpc('send_friend_request', {p_code:code, p_person:personId}));
+  },
+  async respondFriend(linkId, accept, personId){
+    await currentUser();
+    return must(await sb.rpc('respond_friend_request', {p_link:linkId, p_accept:!!accept, p_person:personId || null}));
+  },
+  async setFriendPerson(linkId, personId){
+    await currentUser();
+    return must(await sb.rpc('set_friend_person', {p_link:linkId, p_person:personId || null}));
+  },
+  async removeFriend(linkId){
+    await currentUser();
+    return must(await sb.rpc('remove_friend_link', {p_link:linkId}));
+  },
+  async newFriendCode(){
+    await currentUser();
+    return must(await sb.rpc('regenerate_friend_code'));
+  },
+  async saveAbout(text){
+    const u = await currentUser();
+    text = String(text == null ? '' : text).trim();
+    if(text.length > 300) fail('關於我最多 300 個字');
+    const row = must(await sb.from('profiles').update({about_me:text}).eq('id', u.id).select().single());
+    return toProfile(row);
+  },
+  async saveShare(p){
+    const u = await currentUser();
+    const row = must(await sb.from('profiles')
+      .update({share_address:!!p.shareAddress, share_address_en:!!p.shareAddressEn, share_stats:!!p.shareStats})
+      .eq('id', u.id).select().single());
+    return toProfile(row);
+  },
+
   async changePassword(oldPw, newPw){
     const u = await currentUser();
     newPw = String(newPw || '');
@@ -780,6 +902,13 @@ const Live = {
     }else{
       id = must(await sb.from('people').insert({...row, owner:u.id}).select('id').single()).id;
     }
+    return {id, data: await loadData()};
+  },
+
+  async setReplyDismiss(id, mailId){
+    await currentUser();
+    const r = must(await sb.from('people').update({reply_dismissed:mailId || ''}).eq('id', id).select('id'));
+    if(!r.length) fail('找不到這位人物');
     return {id, data: await loadData()};
   },
 
@@ -857,20 +986,60 @@ const Demo = (() => {
     ]
   };
   const clone = () => JSON.parse(JSON.stringify(db));
+  let friends = [
+    {id:'f1', status:'accepted', outgoing:true, myPerson:'p2', nickname:'Anna 安娜', createdAt:'2026-11-01', acceptedAt:'2026-11-02',
+     share:{about:'住在漢堡的插畫家，最近在學中文。\n喜歡海邊、貓頭鷹和復古郵票，回信會慢一點但一定會回！', address:'', addressEn:'Anna Schmidt\nMusterstraße 12\n20095 Hamburg\nGermany', stats:true, recv:42, sent:38},
+     theirSent:1, theirLastSent:'2026-11-08', theirRecv:1, myRecv:0, mySent:1},
+    {id:'f2', status:'pending', outgoing:true, myPerson:'p3', nickname:'Yuki', createdAt:'2026-11-10', share:null, theirSent:0, theirRecv:0, myRecv:0, mySent:0},
+    {id:'f3', status:'pending', outgoing:false, myPerson:null, nickname:'小米', createdAt:'2026-11-12', share:null, theirSent:0, theirRecv:0, myRecv:0, mySent:0}
+  ];
+  const fclone = () => JSON.parse(JSON.stringify(friends.map(f => {
+    if(f.status !== 'accepted' || !f.myPerson) return f;
+    const d = new Date(f.createdAt); d.setDate(d.getDate() - 14);
+    const since = d.toISOString().slice(0, 10);
+    const mine = dir => db.mails.filter(m => m.personId === f.myPerson && m.direction === dir && (m.date || '') >= since).length;
+    return {...f, myRecv: mine('收到'), mySent: mine('寄出')};
+  })));
+  const linkedTo = (pid, skip) => pid && friends.some(f => f.id !== skip && f.myPerson === pid);
   const up = (key,o) => { if(!o.id){ o.id=key[0]+Date.now(); o.created=new Date().toISOString(); db[key].push(o);} else { const i=db[key].findIndex(x=>x.id===o.id); db[key][i]={...db[key][i],...o}; } return o.id; };
-  let me = {id:'u1', account:'koala', nickname:'無尾熊', defaultKind:'明信片', defaultChannel:'Postcrossing', address:'樹葉鎮樹頂動物園\n尤加利巷 5 號\n無尾熊郵局', addressEn:'Koala Post\nNo. 5, Eucalyptus Lane\nTreetop Zoo, Leafy Town 12345', created:'2026-11-09'};
+  let me = {id:'u1', account:'koala', nickname:'無尾熊', defaultKind:'明信片', defaultChannel:'Postcrossing',
+    friendCode:'K7M2QX', about:'最近在收集各地的貓咪郵票。\n喜歡手繪明信片、植物和下雨天的咖啡店。', shareAddress:false, shareAddressEn:false, shareStats:true, address:'樹葉鎮樹頂動物園\n尤加利巷 5 號\n無尾熊郵局', addressEn:'Koala Post\nNo. 5, Eucalyptus Lane\nTreetop Zoo, Leafy Town 12345', created:'2026-11-09'};
   let pw = 'koala123';
   const ok = () => ({token:'demo', profile:{...me}});
   return {
     getConfig: () => ({inviteRequired:false}),
+    announcements: () => [{id:1, date:'2026-11-14', title:'歡迎加入無尾熊郵局', body:'歡迎大家來到無尾熊郵局！\n\n這裡可以記錄每一封收到和寄出的信件、明信片，\n看看信從哪裡來、和每位筆友交換了幾次，\n也可以把要回的信先記成「待寄出」，寄出時再勾一下就好。\n\n第一次使用可以先看右上角的「說明」。\n有任何問題或建議，歡迎透過 Instagram 或 Threads 聯絡管理員 @koala.stamp。'}],
     maintenance: () => ({on: /[?&]maintenance\b/.test(location.search), message:'', bypass:false}),
     login: (a, p) => (String(a).trim().toLowerCase() === me.account.toLowerCase() && p === pw) ? ok() : fail('帳號或密碼不正確（預覽：koala / koala123）'),
     register: f => { checkAccount(String(f.account).trim()); checkNickname(String(f.nickname||'').trim()); checkPassword(String(f.password)); me = {...me, nickname:f.nickname, account:String(f.account).trim(), address:''}; pw = f.password; return ok(); },
-    getData: () => ({...clone(), profile:{...me}}),
+    getData: () => ({...clone(), profile:{...me}, friends:fclone()}),
+    getFriends: () => fclone(),
+    sendFriend: (code, pid) => {
+      code = String(code || '').trim().toUpperCase();
+      if(!/^[A-Z0-9]{6}$/.test(code)) fail('好友代碼是 6 個英文字母或數字');
+      if(code === me.friendCode) return 'self';
+      if(linkedTo(pid)) return 'person_linked';
+      if(code === 'AAAAAA') return 'notfound';
+      friends.unshift({id:'f'+Date.now(), status:'pending', outgoing:true, myPerson:pid, nickname:'新朋友', createdAt:today(), share:null, theirSent:0, theirRecv:0, myRecv:0, mySent:0});
+      return 'sent';
+    },
+    respondFriend: (id, accept, pid) => {
+      const f = friends.find(x => x.id === id); if(!f) fail('找不到這個邀請');
+      if(!accept){ friends = friends.filter(x => x.id !== id); return 'declined'; }
+      if(linkedTo(pid, id)) fail('這位人物已經連結到別的好友');
+      Object.assign(f, {status:'accepted', myPerson:pid || null, acceptedAt:today(), share:{about:'', address:'臺中市西區公益路 100 號\n小米 收', addressEn:'', stats:true, recv:12, sent:9}});
+      return 'accepted';
+    },
+    setFriendPerson: (id, pid) => { if(linkedTo(pid, id)) fail('這位人物已經連結到別的好友'); const f = friends.find(x => x.id === id); if(f) f.myPerson = pid || null; return 'ok'; },
+    removeFriend: id => { friends = friends.filter(x => x.id !== id); return 'ok'; },
+    newFriendCode: () => { const c = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; me.friendCode = Array.from({length:6}, () => c[Math.floor(Math.random()*c.length)]).join(''); return me.friendCode; },
+    saveAbout: t => { t = String(t || '').trim(); if(t.length > 300) fail('關於我最多 300 個字'); me = {...me, about:t}; return {...me}; },
+    saveShare: p => { me = {...me, shareAddress:!!p.shareAddress, shareAddressEn:!!p.shareAddressEn, shareStats:!!p.shareStats}; return {...me}; },
     saveProfile: p => { me = {...me, nickname:p.nickname, address:p.address, addressEn:p.addressEn}; return {...me}; },
     savePrefs: p => { me = {...me, defaultKind:p.defaultKind, defaultChannel:p.defaultChannel}; return {...me}; },
     changePassword: (o,n) => { if(o !== pw) fail('目前的密碼不正確'); checkPassword(String(n)); pw = n; return {token:'demo'}; },
     savePerson: p => ({id:up('people',{...p}), data:clone()}),
+    setReplyDismiss: (id, mailId) => { const p = db.people.find(x => x.id === id); if(p) p.replyDismissed = mailId || ''; return {id, data:clone()}; },
     deletePerson: id => { db.people=db.people.filter(x=>x.id!==id); db.mails.forEach(m => { if(m.personId===id) m.personId=''; }); return {id,data:clone()}; },
     saveMail: (m,reply) => {
       const id = up('mails',{...m});
@@ -908,6 +1077,29 @@ function call(fn, ...args){
     if(isAuthErr(err)){ saveToken(''); showAuth('login', '登入已過期，請重新登入'); throw new Error('NEED_LOGIN'); }
     throw new Error(errText(err));
   });
+}
+
+/* ---------- 公告 ---------- */
+let ANN = null;
+const annKey = 'koalaPostAnnSeen';
+const annLatest = () => (ANN && ANN.length) ? String(ANN[0].id) : '';
+function annSeen(){ try{ return localStorage.getItem(annKey) || ''; }catch(e){ return ''; } }
+function annMarkSeen(){ try{ localStorage.setItem(annKey, annLatest()); }catch(e){} updateAnnDot(); }
+function updateAnnDot(){ const d = $('#annDot'); if(d) d.classList.toggle('hidden', !annLatest() || annSeen() === annLatest()); }
+async function loadAnnouncements(){
+  try{ ANN = (await call('announcements')) || []; }catch(e){ ANN = ANN || []; }
+  updateAnnDot();
+  return ANN;
+}
+async function openAnnouncements(){
+  if(!ANN) await loadAnnouncements();
+  openModal(`${head('megaphone', '公告')}
+    ${ANN.length ? ANN.map(a => `<article class="ann">
+      <span class="ann-date">${esc(a.date)}</span>
+      ${a.title ? `<h4>${esc(a.title)}</h4>` : ''}
+      <p class="ann-body">${esc(a.body)}</p>
+    </article>`).join('') : '<p class="empty-s">目前沒有公告</p>'}`);
+  annMarkSeen();
 }
 
 /* ---------- 維護畫面 ---------- */
@@ -1015,13 +1207,14 @@ async function startApp(){
     const r = await call('getData');
     PROFILE = r.profile || PROFILE;
     DB = {people:r.people, mails:r.mails};
+    FRIENDS = r.friends || [];
     render();
   }catch(err){ if(err.message !== 'NEED_LOGIN'){ toast('讀取失敗：' + err.message); render(); } }
 }
 
 async function logout(){
   if(!await askConfirm('確定要登出嗎？', {ok:'登出'})) return;
-  saveToken(''); PROFILE = null; DB = {people:[], mails:[]}; view = 'home';
+  saveToken(''); PROFILE = null; DB = {people:[], mails:[]}; FRIENDS = []; view = 'home';
   if(sb) sb.auth.signOut({scope:'local'}).catch(() => {});
   showAuth('login', '已登出');
 }
@@ -1029,9 +1222,19 @@ async function logout(){
 /* ================= 狀態 ================= */
 let DB = {people:[], mails:[]};
 let PROFILE = null;
+let FRIENDS = [];
+const friendOf = pid => FRIENDS.find(f => f.myPerson === pid && (f.status === 'accepted' || f.outgoing));
+const inTransit = f => f && f.status === 'accepted' ? Math.max(0, (f.theirSent || 0) - (f.myRecv || 0)) : 0;
+const incomingInvites = () => FRIENDS.filter(f => f.status === 'pending' && !f.outgoing);
+const freePeople = skipLink => DB.people.filter(p => !FRIENDS.some(f => f.id !== skipLink && f.myPerson === p.id));
+async function refreshFriends(){
+  try{ FRIENDS = await call('getFriends'); }catch(e){ return; }
+  if(!$('#modal').classList.contains('hidden')) return;
+  render();
+}
 let view = 'home';
 const filt = {q:'', kind:'全部', dir:'全部', channel:'全部', region:'全部'};
-const pf = {q:'', channel:'全部', reply:'全部'};
+const pf = {q:'', channel:'全部', reply:'全部', friend:'全部'};
 
 const person = id => DB.people.find(p => p.id === id);
 const personName = m => { if(!m.personId) return m.channel==='Postcrossing' ? (m.pcId || 'Postcrossing 卡友') : '未指定'; const p=person(m.personId); return p ? p.name : '（已刪除的人）'; };
@@ -1045,8 +1248,11 @@ function stat(pid){
   const done = ms.filter(m => m.direction !== '待寄出');
   // 最後一封（依日期，同一天看建立時間）是「收到」的話，就是待回覆
   const latest = [...done].sort(byDateDesc)[0];
-  const needReply = !!latest && latest.direction === '收到';
-  return {recv, sent, pending, total: recv + sent, last: done.map(m=>m.date).sort().pop() || '', needReply, lastDate: latest ? latest.date : ''};
+  const pp = person(pid);
+  const waiting = !!latest && latest.direction === '收到';
+  const muted = waiting && !!pp && pp.replyDismissed === latest.id;
+  const needReply = waiting && !muted;
+  return {recv, sent, pending, total: recv + sent, last: done.map(m=>m.date).sort().pop() || '', needReply, muted, latestId: latest ? latest.id : '', lastDate: latest ? latest.date : ''};
 }
 function replyBadge(s){
   return `<span class="reply-badge">${ic('clock','s')}待回覆${s.pending ? '・已排待寄出' : ''}</span>`;
@@ -1056,7 +1262,8 @@ function avatarColor(id){ let h=0; for(const c of String(id)) h=(h*31+c.charCode
 /* ================= 版面 ================= */
 function renderTabs(){
   const tabs = [['home','home','總覽'],['mails','letter','信件'],['people','people','人物'],['me','user','我的']];
-  $('#tabs').innerHTML = tabs.map(([v,i,l]) => `<button class="tab ${view===v?'on':''}" data-act="tab" data-v="${v}">${ic(i)}${l}</button>`).join('');
+  const dot = v => v === 'me' && incomingInvites().length ? '<span class="dot-new"></span>' : '';
+  $('#tabs').innerHTML = tabs.map(([v,i,l]) => `<button class="tab ${view===v?'on':''}" data-act="tab" data-v="${v}">${ic(i)}${l}${dot(v)}</button>`).join('');
   $('#fab').classList.toggle('hidden', view==='me' || !TOKEN && IS_LIVE);
   $('#fab').innerHTML = view==='people' ? ic('plus')+'新增人物' : ic('plus')+'新增信件';
   $('#fab').dataset.act = view==='people' ? 'newPerson' : 'newMail';
@@ -1086,8 +1293,23 @@ function pendingRow(m){
     <div class="grow"><div>${esc(personName(m))}</div><div class="sub">${esc(m.note || placeText(m))}</div></div>
     <button class="mini" data-act="markSent" data-id="${m.id}">${ic('check','s')}已寄出</button></div>`;
 }
+function friendNotices(){
+  const inv = incomingInvites();
+  const tr = FRIENDS.filter(f => inTransit(f) && person(f.myPerson));
+  return (inv.length ? `<section class="paper notice" data-act="tab" data-v="me">
+      <div class="dot" style="--c:var(--green)">${ic('link')}</div>
+      <div class="grow"><div>有 ${inv.length} 個好友邀請</div><div class="sub">${inv.map(f => esc(f.nickname)).join('、')} 想加你為好友</div></div>
+      ${ic('chevron')}</section>` : '')
+    + (tr.length ? `<section class="paper card">
+      <h3>${ic('send')}正在路上的信</h3>
+      ${tr.map(f => { const p = person(f.myPerson); return `<div class="row" data-act="openPerson" data-id="${p.id}">
+        <div class="avatar" style="--c:${avatarColor(p.id)};width:38px;height:38px;font-size:16px">${esc((p.name||'?').slice(0,1))}</div>
+        <div class="grow"><div>${esc(p.name)}</div><div class="sub">${f.theirLastSent ? esc(f.theirLastSent) + ' 寄出' : '對方已寄出'}</div></div>
+        <span class="num">${inTransit(f)} 封</span></div>`; }).join('')}
+    </section>` : '');
+}
 function homeHTML(){
-  if(!DB.mails.length && !DB.people.length) return `<section class="paper card empty">${koalaSVG()}${PROFILE && PROFILE.nickname ? `<p>${esc(PROFILE.nickname)}，歡迎來到無尾熊郵局</p>` : ''}<p>信箱還是空的</p><p>按右下角「新增信件」放進第一封吧</p></section>`;
+  if(!DB.mails.length && !DB.people.length) return friendNotices() + `<section class="paper card empty">${koalaSVG()}${PROFILE && PROFILE.nickname ? `<p>${esc(PROFILE.nickname)}，歡迎來到無尾熊郵局</p>` : ''}<p>信箱還是空的</p><p>按右下角「新增信件」放進第一封吧</p></section>`;
   const R = DB.mails.filter(m => m.direction === '收到');
   const sent = DB.mails.filter(m => m.direction === '寄出').length;
   const P = DB.mails.filter(m => m.direction === '待寄出').sort((a,b) => (a.date||'').localeCompare(b.date||''));
@@ -1103,6 +1325,7 @@ function homeHTML(){
     <div class="hero-koala">${logoMarkup()}</div>
     <div>${PROFILE && PROFILE.nickname ? `<p class="hello">${esc(PROFILE.nickname)}，你好</p>` : ''}<h2>已經收到<b>${R.length}</b>封</h2><p class="muted">信件 ${letters}　明信片 ${cards}　寄出 ${sent}${P.length ? '　待寄出 ' + P.length : ''}</p></div>
   </section>
+  ${friendNotices()}
   ${P.length ? `<section class="paper pending">
     <h3>${ic('clock')}待寄出<b>${P.length}</b>封</h3>
     <div class="batch">
@@ -1192,11 +1415,20 @@ function renderMailList(){
 }
 
 /* ---------- 人物 ---------- */
+function friendTag(pid){
+  const f = friendOf(pid); if(!f) return '';
+  return f.status === 'accepted' ? `<span class="friend-badge only-ic" title="好友" aria-label="好友">${ic('check','s')}</span>` : `<span class="friend-badge wait">${ic('clock','s')}等待確認</span>`;
+}
+function friendBadges(pid){
+  const n = inTransit(friendOf(pid));
+  return n ? `<span class="transit-badge">${ic('send','s')}${n} 封在路上</span>` : '';
+}
 function peopleHTML(){
   return `<div class="paper card filters">
     <label class="search">${ic('search')}<input id="pq" placeholder="搜尋名字、地點、地址、備註" value="${esc(pf.q)}"></label>
     ${chipRow('管道','channel',['全部',...CHANNELS],pf)}
     ${chipRow('狀態','reply',['全部','待回覆'],pf)}
+    ${chipRow('好友','friend',['全部','好友','等待確認','非好友'],pf)}
   </div>
   <div id="peopleCount" class="count-line"></div>
   <div id="peopleList" class="people-list"></div>`;
@@ -1207,6 +1439,8 @@ function renderPeopleList(){
     .filter(p => (pf.channel==='全部' || p.channel===pf.channel) && (!q || [p.name,p.place,p.address,p.note].join(' ').toLowerCase().includes(q)))
     .map(p => ({p, s:stat(p.id)}))
     .filter(x => pf.reply==='全部' || x.s.needReply)
+    .filter(x => { if(pf.friend==='全部') return true; const f = friendOf(x.p.id);
+      return pf.friend==='好友' ? !!f && f.status==='accepted' : pf.friend==='等待確認' ? !!f && f.status!=='accepted' : !f; })
     .sort((a,b) => pf.reply==='待回覆'
       ? (a.s.lastDate||'').localeCompare(b.s.lastDate||'')          // 待回覆：等最久的排前面
       : b.s.total-a.s.total || (b.s.last||'').localeCompare(a.s.last||''));
@@ -1215,8 +1449,8 @@ function renderPeopleList(){
     <article class="paper person" data-act="openPerson" data-id="${p.id}">
       <div class="avatar" style="--c:${avatarColor(p.id)}">${esc((p.name||'?').slice(0,1))}</div>
       <div class="info">
-        <div class="name">${esc(p.name)}</div>
-        ${s.needReply ? replyBadge(s) : ''}
+        <div class="name-row"><div class="name">${esc(p.name)}</div>${friendTag(p.id)}</div>
+        ${friendBadges(p.id)}${s.needReply ? replyBadge(s) : ''}
         <div class="sub">${placeIcon(p)}${esc(placeText(p))}</div>
         <div class="sub"><span class="tag t-${esc(p.channel)}">${esc(p.channel)}</span>收 ${s.recv}・寄 ${s.sent}${s.pending ? '・待寄 ' + s.pending : ''}</div>
       </div>
@@ -1225,6 +1459,52 @@ function renderPeopleList(){
 }
 
 /* ---------- 我的 ---------- */
+function personOptions(linkId, nickname){
+  const list = freePeople(linkId).sort((a,b) => a.name.localeCompare(b.name));
+  const guess = list.find(x => x.name === nickname);
+  return `<option value="__new">新增人物「${esc(nickname)}」</option>`
+    + list.map(x => `<option value="${esc(x.id)}" ${guess && guess.id === x.id ? 'selected' : ''}>${esc(x.name)}</option>`).join('')
+    + `<option value="">先不要對應</option>`;
+}
+function friendsCardHTML(p){
+  const inv = incomingInvites();
+  const out = FRIENDS.filter(f => f.status === 'pending' && f.outgoing);
+  const ok = FRIENDS.filter(f => f.status === 'accepted');
+  const unmapped = ok.filter(f => !f.myPerson || !person(f.myPerson));
+  const tg = (name, label, on) => `<label class="toggle"><span>${label}</span><input type="checkbox" name="${name}" ${on ? 'checked' : ''}></label>`;
+  return `<section class="paper card">
+    <h3>${ic('link')}好友</h3>
+    <div class="code-row">
+      <div><div class="muted small">我的好友代碼</div><div class="code-big">${esc(p.friendCode || '------')}</div></div>
+      <div class="code-acts"><button class="copy-btn" data-act="copyFriendCode">${ic('copy','s')}複製</button><button class="copy-btn" data-act="newFriendCode">${ic('refresh','s')}換一組</button></div>
+    </div>
+    <p class="muted small" style="margin:0 0 4px">把代碼告訴筆友，對方在人物頁輸入後，你按下接受就會成為好友</p>
+    <div class="fsub">公開給好友的資料</div>
+    <form id="shareForm">
+      ${tg('shareAddress','中文地址', p.shareAddress)}
+      ${tg('shareAddressEn','英文地址', p.shareAddressEn)}
+      ${tg('shareStats','收到和寄出的信件數量', p.shareStats)}
+    </form>
+    ${inv.length ? `<div class="fsub">好友邀請</div>${inv.map(f => `<div class="invite">
+      <div class="who"><b>${esc(f.nickname)}</b> 想加你為好友</div>
+      <label class="muted small">對方是你人物清單裡的哪一位？</label>
+      <select class="in" data-pick="${f.id}">${personOptions(f.id, f.nickname)}</select>
+      <div class="bar"><button class="btn ghost" data-act="declineFriend" data-id="${f.id}">婉拒</button><button class="btn blue" data-act="acceptFriend" data-id="${f.id}">${ic('check','s')}接受</button></div>
+    </div>`).join('')}` : ''}
+    ${unmapped.length ? `<div class="fsub">還沒對應到人物的好友</div>${unmapped.map(f => `<div class="invite">
+      <div class="who"><b>${esc(f.nickname)}</b></div>
+      <select class="in" data-pick="${f.id}">${personOptions(f.id, f.nickname)}</select>
+      <div class="bar"><button class="btn blue" data-act="mapFriend" data-id="${f.id}">設定</button></div>
+    </div>`).join('')}` : ''}
+    ${ok.length - unmapped.length ? `<div class="fsub">已連結的好友（${ok.length - unmapped.length}）</div>${ok.filter(f => !unmapped.includes(f)).map(f => { const q = person(f.myPerson); return `<div class="row" data-act="openPerson" data-id="${q.id}">
+      <div class="avatar" style="--c:${avatarColor(q.id)};width:34px;height:34px;font-size:15px">${esc((q.name||'?').slice(0,1))}</div>
+      <div class="grow"><div>${esc(q.name)}</div><div class="sub">好友帳號：${esc(f.nickname)}</div></div>
+      ${inTransit(f) ? `<span class="transit-badge">${ic('send','s')}${inTransit(f)} 封在路上</span>` : ''}</div>`; }).join('')}` : ''}
+    ${out.length ? `<div class="fsub">已送出、等待確認</div>${out.map(f => { const q = person(f.myPerson); return `<div class="row" ${q ? `data-act="openPerson" data-id="${q.id}"` : ''}>
+      <div class="grow"><div>${esc(q ? q.name : f.nickname)}</div><div class="sub">好友帳號：${esc(f.nickname)}</div></div>
+      <button class="mini" data-act="removeFriend" data-id="${f.id}" data-kind="cancel">取消</button></div>`; }).join('')}` : ''}
+  </section>`;
+}
 function meHTML(){
   const p = PROFILE || {};
   return `<section class="paper card">
@@ -1245,6 +1525,15 @@ function meHTML(){
       <div class="bar-actions"><span></span><button class="btn blue" type="submit">${ic('check','s')}儲存資料</button></div>
     </form>
   </section>
+  <section class="paper card">
+    <h3>${ic('heart')}關於我</h3>
+    <p class="about-hint">${ic('link','s')}只有和你互加好友的人看得到</p>
+    <form id="aboutForm">
+      <textarea class="in about-in" name="about" maxlength="300" placeholder="寫寫近期的事、喜歡的事物，讓筆友更認識你">${esc(p.about || '')}</textarea>
+      <div class="bar-actions"><span class="muted small" id="aboutCount">${(p.about || '').length} / 300</span><button class="btn blue" type="submit">${ic('check','s')}儲存</button></div>
+    </form>
+  </section>
+  ${friendsCardHTML(p)}
   <section class="paper card">
     <h3>${ic('letter')}新增信件的預設</h3>
     <p class="muted small" style="margin:-4px 0 12px">按「新增信件」時，會先幫你選好這兩項</p>
@@ -1287,6 +1576,25 @@ function bindMe(){
       const p = PROFILE || {};
       pr.querySelectorAll('[name=defKind]').forEach(r => r.checked = r.value === (p.defaultKind || '明信片'));
       pr.querySelectorAll('[name=defChannel]').forEach(r => r.checked = r.value === (p.defaultChannel || 'Postcrossing'));
+    }
+  });
+  const af = $('#aboutForm');
+  af.about.addEventListener('input', () => { $('#aboutCount').textContent = af.about.value.length + ' / 300'; });
+  af.addEventListener('submit', async e => {
+    e.preventDefault();
+    const btn = af.querySelector('[type=submit]'); btn.disabled = true;
+    try{ PROFILE = await call('saveAbout', af.about.value); toast('關於我已儲存'); }
+    catch(err){ if(err.message !== 'NEED_LOGIN') toast('儲存失敗：' + err.message); }
+    btn.disabled = false;
+  });
+  const sf = $('#shareForm');
+  sf.addEventListener('change', async () => {
+    const want = {shareAddress:sf.shareAddress.checked, shareAddressEn:sf.shareAddressEn.checked, shareStats:sf.shareStats.checked};
+    try{ PROFILE = await call('saveShare', want); toast('公開設定已儲存'); }
+    catch(err){
+      if(err.message !== 'NEED_LOGIN') toast('儲存失敗：' + err.message);
+      const q = PROFILE || {};
+      sf.shareAddress.checked = !!q.shareAddress; sf.shareAddressEn.checked = !!q.shareAddressEn; sf.shareStats.checked = q.shareStats !== false;
     }
   });
   const g = $('#pwForm');
@@ -1394,6 +1702,7 @@ async function submitMail(e){
     const reply = m.direction==='收到' && f.reply.type==='checkbox' && f.reply.checked;
     const r = await call('saveMail', m, reply);
     DB = r.data; closeModal(); render();
+    if(FRIENDS.some(f => f.status === 'accepted' && f.myPerson === personId)) refreshFriends();
     toast(!reply ? '已收進信箱' : r.replyCreated ? '已收進信箱，也加了一筆待寄出' : '已收進信箱，這個人已經有待寄出，沒有重複新增');
   }catch(err){
     toast('儲存失敗：' + (err.message||err)); btn.disabled=false; btn.textContent='儲存';
@@ -1451,23 +1760,67 @@ function personDetail(id){
   const p = person(id); if(!p) return;
   const s = stat(id);
   const ms = DB.mails.filter(m => m.personId===id).sort(byDateDesc);
-  openModal(`${head('people', esc(p.name))}
+  const fs = friendOf(id), fsh = fs && fs.status === 'accepted' && fs.share && fs.share.stats ? fs.share : null;
+  openModal(`${head('people', esc(p.name) + (fsh ? `<span class="hstats"><span class="fstat sm"><span>收到</span><b>${fsh.recv}</b></span><span class="fstat sm"><span>寄出</span><b>${fsh.sent}</b></span></span>` : ''))}
     <dl class="dl">
       <dt>管道</dt><dd><span class="tag t-${esc(p.channel)}">${esc(p.channel)}</span></dd>
       <dt>來源</dt><dd>${esc(placeText(p))}</dd>
       ${p.address ? `<dt>地址</dt><dd><div class="addr-box">${esc(p.address).replace(/\n/g,'<br>')}</div><button class="copy-btn" data-act="copyAddr" data-id="${p.id}">${ic('copy','s')}複製地址</button></dd>` : ''}
       ${p.note ? `<dt>備註</dt><dd>${esc(p.note).replace(/\n/g,'<br>')}</dd>` : ''}
     </dl>
-    ${s.needReply ? `<div class="reply-note">${ic('inbox','s')}最後一封是 ${esc(s.lastDate)} 收到的，還沒回信${s.pending ? `（已有 ${s.pending} 封待寄出）` : ''}</div>` : ''}
+    <div class="pd-acts"><button class="btn ghost" data-act="editPerson" data-id="${p.id}">${ic('edit','s')}編輯</button><button class="btn" style="--c:#fbe7a8" data-act="pendingFor" data-id="${p.id}">${ic('clock','s')}待寄出</button><button class="btn blue" data-act="mailFor" data-dir="收到" data-id="${p.id}">${ic('inbox','s')}收到</button><button class="btn" style="--c:var(--green)" data-act="mailFor" data-dir="寄出" data-id="${p.id}">${ic('send','s')}寄出</button></div>
+    ${s.needReply ? `<div class="reply-note"><span class="grow">${ic('inbox','s')}最後一封是 ${esc(s.lastDate)} 收到的，尚未回信${s.pending ? `（已有 ${s.pending} 封待寄出）` : ''}</span><button class="note-btn" data-act="muteReply" data-id="${p.id}">這次不提示</button></div>` : ''}
+    ${inTransit(friendOf(p.id)) ? `<div class="transit-note solo">${ic('send','s')}對方${friendOf(p.id).theirLastSent ? '在 ' + esc(friendOf(p.id).theirLastSent) + ' ' : ''}寄了 ${inTransit(friendOf(p.id))} 封給你，正在路上</div>` : ''}
+    ${s.muted ? `<div class="muted-line">這次的待回覆提示已關閉，收到新的信時會再提示<button class="note-btn" data-act="unmuteReply" data-id="${p.id}">恢復提示</button></div>` : ''}
     <div class="pstats"><div><b>${s.recv}</b><span>收到</span></div><div><b>${s.sent}</b><span>寄出</span></div><div><b>${s.pending}</b><span>待寄出</span></div><div><b>${s.total}</b><span>交換次數</span></div></div>
     ${ms.length ? ms.map(m => `<div class="row" data-act="openMail" data-id="${m.id}">
       ${ic(m.direction==='寄出'?'send':m.direction==='待寄出'?'clock':'inbox')}
       <div class="grow"><div>${esc(m.kind)}・${esc(m.direction)}</div><div class="sub">${esc(m.note||placeText(m))}</div></div>
       <span class="num">${esc(m.date)}</span></div>`).join('') : '<p class="empty-s">還沒有和這位的信件紀錄</p>'}
+    ${friendSection(p)}
     <div class="bar-actions">
       <button class="btn danger" data-act="delPerson" data-id="${p.id}">${ic('trash','s')}刪除</button>
-      <span style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end"><button class="btn ghost" data-act="editPerson" data-id="${p.id}">${ic('edit','s')}編輯</button><button class="btn" style="--c:#fbe7a8" data-act="pendingFor" data-id="${p.id}">${ic('clock','s')}待寄出</button><button class="btn blue" data-act="mailFor" data-id="${p.id}">${ic('plus','s')}記一筆</button></span>
     </div>`);
+  const ff = $('#friendForm');
+  if(ff) ff.addEventListener('submit', async e => {
+    e.preventDefault();
+    const code = ff.code.value.trim().toUpperCase();
+    if(!code) return toast('請輸入好友代碼');
+    const btn = ff.querySelector('[type=submit]'); btn.disabled = true;
+    try{
+      const r = await call('sendFriend', code, p.id);
+      const msg = {sent:'已送出好友邀請，等對方確認', accepted:'對方也邀請過你，已經成為好友', exists:'已經送過邀請了，請等對方確認',
+        already:'你們已經是好友了', notfound:'找不到這個好友代碼', self:'這是你自己的好友代碼', person_linked:'這位人物已經連結到別的好友'}[r] || r;
+      toast(msg);
+      if(['sent','accepted','exists'].includes(r)){ FRIENDS = await call('getFriends'); personDetail(p.id); render(); }
+      else btn.disabled = false;
+    }catch(err){ btn.disabled = false; if(err.message !== 'NEED_LOGIN') toast(err.message); }
+  });
+}
+function friendSection(p){
+  const f = friendOf(p.id);
+  if(!f) return `<div class="friend-box">
+      <div class="fb-title">${ic('link','s')}連結好友帳號</div>
+      <p class="muted small" style="margin:4px 0 0">輸入對方在「我的」頁面上的好友代碼，對方同意後，就能看到彼此的「關於我」、公開的資料和正在路上的信</p>
+      <form class="fb-form" id="friendForm"><input class="in" name="code" maxlength="6" placeholder="例如 K7M2QX" autocomplete="off" autocapitalize="characters" spellcheck="false"><button class="btn blue" type="submit">送出邀請</button></form>
+    </div>`;
+  if(f.status !== 'accepted') return `<div class="friend-box">
+      <div class="fb-title">${ic('clock','s')}已送出好友邀請給「${esc(f.nickname)}」</div>
+      <p class="muted small" style="margin:4px 0 8px">等對方在「我的」頁面按下接受，就會成為好友</p>
+      <button class="copy-btn" style="margin:0" data-act="removeFriend" data-id="${f.id}" data-kind="cancel">取消邀請</button>
+    </div>`;
+  const sh = f.share || {};
+  const addrBlock = (label, text, key) => text ? `<div class="fb-line">${label}<div class="addr-box">${esc(text).replace(/\n/g,'<br>')}</div>
+      <div class="fb-acts"><button class="copy-btn" data-act="copyFriendAddr" data-id="${f.id}" data-k="${key}">${ic('copy','s')}複製</button>
+      ${text !== p.address ? `<button class="copy-btn" data-act="fillFriendAddr" data-id="${f.id}" data-k="${key}" data-p="${p.id}">${ic('edit','s')}填入人物地址</button>` : ''}</div></div>` : '';
+  return `<div class="friend-box">
+      <div class="fb-title">${ic('link','s')}對方的公開資訊</div>
+      ${sh.about ? `<div class="fb-line">關於我<div class="addr-box">${esc(sh.about).replace(/\n/g,'<br>')}</div></div>` : ''}
+      ${addrBlock('中文地址', sh.address, 'address')}
+      ${addrBlock('英文地址', sh.addressEn, 'addressEn')}
+      ${!sh.address && !sh.addressEn ? `<div class="fb-line muted">${sh.stats || sh.about ? '對方沒有公開地址' : '對方目前沒有公開任何資料'}</div>` : ''}
+      <div class="fb-acts" style="margin-top:10px"><button class="copy-btn" data-act="removeFriend" data-id="${f.id}">解除好友</button></div>
+    </div>`;
 }
 
 async function markSent(ids, btn){
@@ -1477,6 +1830,7 @@ async function markSent(ids, btn){
   try{
     const r = await call('markSent', ids);
     DB = r.data; closeModal(); render();
+    if(FRIENDS.some(f => f.status === 'accepted')) refreshFriends();
     toast(r.count > 1 ? `已把 ${r.count} 封標記為寄出` : '已標記為寄出');
   }catch(err){
     if(btn){ btn.disabled = false; btn.innerHTML = btn.dataset.label; }
@@ -1785,6 +2139,62 @@ document.addEventListener('click', async e => {
   if(act==='copyMyAddr'){ if(PROFILE && PROFILE.address) copyText(PROFILE.address); return; }
   if(act==='copyMyAddrEn'){ if(PROFILE && PROFILE.addressEn) copyText(PROFILE.addressEn); return; }
   if(act==='help'){ Help.open(); return; }
+  if(act==='announce'){ openAnnouncements(); return; }
+  if(act==='muteReply' || act==='unmuteReply'){
+    const p = person(id); if(!p) return;
+    const on = act === 'muteReply';
+    try{ const r = await call('setReplyDismiss', id, on ? stat(id).latestId : ''); DB = r.data; personDetail(id); render(); toast(on ? '這次先不提示，收到新的信時會再提示' : '已恢復待回覆提示'); }
+    catch(err){ if(err.message !== 'NEED_LOGIN') toast('更新失敗：' + err.message); }
+    return;
+  }
+  if(act==='copyFriendCode'){ if(PROFILE && PROFILE.friendCode) copyText(PROFILE.friendCode); return; }
+  if(act==='newFriendCode'){
+    if(!await askConfirm('換一組新的好友代碼後，舊的代碼就不能再用。\n已經是好友的人不受影響。', {title:'換一組好友代碼', ok:'換新代碼'})) return;
+    try{ const c = await call('newFriendCode'); PROFILE = {...PROFILE, friendCode:c}; render(); toast('已換成新的好友代碼'); }catch(err){ if(err.message !== 'NEED_LOGIN') toast(err.message); }
+    return;
+  }
+  if(act==='copyFriendAddr' || act==='fillFriendAddr'){
+    const f = FRIENDS.find(x => x.id === id); const text = f && f.share ? f.share[el.dataset.k] : '';
+    if(!text) return;
+    if(act==='copyFriendAddr'){ copyText(text); return; }
+    const p = person(el.dataset.p); if(!p) return;
+    if(p.address && !await askConfirm('要用對方公開的地址，取代這位人物原本的地址嗎？', {title:'填入人物地址', ok:'取代'})) return;
+    try{ const r = await call('savePerson', {...p, address:text}); DB = r.data; personDetail(p.id); render(); toast('已填入人物地址'); }catch(err){ if(err.message !== 'NEED_LOGIN') toast('儲存失敗：' + err.message); }
+    return;
+  }
+  if(act==='removeFriend'){
+    const cancel = el.dataset.kind === 'cancel';
+    if(!await askConfirm(cancel ? '要取消這個好友邀請嗎？' : '解除好友後，雙方就看不到彼此公開的資料。\n人物和信件紀錄都會保留。', {title: cancel ? '取消邀請' : '解除好友', ok: cancel ? '取消邀請' : '解除', danger:!cancel})) return;
+    try{
+      await call('removeFriend', id); FRIENDS = await call('getFriends');
+      const del = document.querySelector('#modal:not(.hidden) [data-act=delPerson]');
+      render(); if(del) personDetail(del.dataset.id);
+      toast(cancel ? '已取消邀請' : '已解除好友');
+    }catch(err){ if(err.message !== 'NEED_LOGIN') toast(err.message); }
+    return;
+  }
+  if(act==='acceptFriend' || act==='declineFriend' || act==='mapFriend'){
+    const f = FRIENDS.find(x => x.id === id); if(!f) return;
+    if(act==='declineFriend'){
+      if(!await askConfirm(`要婉拒「${f.nickname}」的好友邀請嗎？`, {title:'婉拒邀請', ok:'婉拒'})) return;
+      try{ await call('respondFriend', id, false, null); FRIENDS = await call('getFriends'); render(); toast('已婉拒'); }catch(err){ if(err.message !== 'NEED_LOGIN') toast(err.message); }
+      return;
+    }
+    const sel = document.querySelector(`[data-pick="${id}"]`);
+    el.disabled = true;
+    try{
+      let pid = sel ? sel.value : '';
+      if(pid === '__new'){
+        const r = await call('savePerson', {name:f.nickname, channel:'筆友', region:'台灣', place:'', address:'', note:''});
+        DB = r.data; pid = r.id;
+      }
+      if(act==='acceptFriend') await call('respondFriend', id, true, pid || null);
+      else await call('setFriendPerson', id, pid || null);
+      FRIENDS = await call('getFriends'); render();
+      toast(act==='acceptFriend' ? `已經和「${f.nickname}」成為好友` : '已設定');
+    }catch(err){ el.disabled = false; if(err.message !== 'NEED_LOGIN') toast(err.message); }
+    return;
+  }
   if(act==='maintReload'){ location.reload(); return; }
   if(act==='maintAdmin'){ showAuth('login'); return; }
   if(act==='maintBack'){ showMaintenance(); return; }
@@ -1796,10 +2206,10 @@ document.addEventListener('click', async e => {
   if(act==='openPerson') personDetail(id);
   if(act==='editMail') mailForm(DB.mails.find(m => m.id===id));
   if(act==='editPerson') personForm(person(id));
-  if(act==='mailFor'){ const p = person(id); mailForm({personId:p.id, channel:p.channel, region:p.region, place:p.place}); }
+  if(act==='mailFor'){ const p = person(id); mailForm({direction:el.dataset.dir || '收到', personId:p.id, channel:p.channel, region:p.region, place:p.place}); }
   if(act==='delMail'){
     if(!await askConfirm('確定要刪除這筆信件紀錄嗎？', {title:'刪除信件', ok:'刪除', danger:true})) return;
-    try{ const r = await call('deleteMail', id); DB = r.data; closeModal(); render(); toast('已刪除'); }catch(err){ toast('刪除失敗'); }
+    try{ const r = await call('deleteMail', id); DB = r.data; closeModal(); render(); toast('已刪除'); if(FRIENDS.some(f => f.status === 'accepted')) refreshFriends(); }catch(err){ toast('刪除失敗'); }
   }
   if(act==='delPerson'){
     const n = stat(id).total;
@@ -1824,6 +2234,7 @@ window.addEventListener('error', e => { try{ toast('網頁錯誤：' + (e.messag
   renderTabs();
   $('#countries').innerHTML = COUNTRIES.map(c => `<option value="${c}">`).join('');
   $('#brandLogo').innerHTML = logoMarkup();
+  setTimeout(loadAnnouncements, 300);
   if(!IS_LIVE){
     $('#demoNote').classList.remove('hidden');
     if(await checkMaintenance()){ showMaintenance(); return; }
