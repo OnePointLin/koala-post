@@ -99,7 +99,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 .tag{display:inline-flex;align-items:center;gap:4px;font-size:12px;padding:3px 9px;border-radius:999px;position:relative;isolation:isolate;white-space:nowrap}
 .tag::before{content:'';position:absolute;inset:0;border-radius:999px;background:var(--c,#eee);z-index:-1;filter:url(#crayonS)}
 .t-信件{--c:var(--blue)} .t-明信片{--c:var(--peach)}
-.t-筆友{--c:var(--green)} .t-Postcrossing{--c:#d6e3fb} .t-其他{--c:#ece9e2}
+.t-筆友{--c:#e1f4c2;color:#4a6e30} .t-Postcrossing{--c:#d6e3fb} .t-其他{--c:#ece9e2}
 .t-收到{--c:#e9f6dc} .t-寄出{--c:#f3e4f0} .t-待寄出{--c:#fbe7a8}
 .reply-badge{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:#a2482f;background:#fde3d6;border-radius:999px;padding:2px 10px;margin:3px 0 1px;white-space:nowrap}
 .reply-badge .ic{width:13px;height:13px}
@@ -108,8 +108,8 @@ button,input,select,textarea{font:inherit;color:inherit}
 .name-row{display:flex;align-items:center;gap:6px;min-width:0}
 .name-row .name{min-width:0}
 .name-row .friend-badge{flex:none;margin:0}
-.friend-badge.only-ic{padding:3px 6px}
-.friend-badge.only-ic .ic{width:14px;height:14px;stroke-width:2.6}
+.friend-badge.only-ic{padding:2px 10px;color:#4a6e30;background:#e1f4c2}
+.friend-badge.only-ic .ic{width:14px;height:14px;stroke-width:2.4}
 .friend-badge.wait{color:#6d4c0c;background:#fbe7a8}
 .transit-badge{color:var(--deep);background:#e9f0fd}
 .friend-badge .ic,.transit-badge .ic{width:13px;height:13px}
@@ -131,6 +131,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 .fstat span{font-size:13px;color:var(--muted)}
 .fstat b{font-size:20px;font-weight:400;color:var(--deep)}
 .transit-note{display:flex;align-items:center;gap:6px;background:#e9f0fd;color:var(--deep);border-radius:12px;padding:8px 12px;font-size:14px;margin:8px 0 0}
+.addr-hint{font-size:13px;color:var(--deep);margin:0 0 12px;line-height:1.5}
 .about-hint{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--deep);background:#e9f0fd;border-radius:12px;padding:7px 12px;margin:-2px 0 10px}
 #aboutForm textarea.about-in{min-height:130px;height:130px;resize:vertical;line-height:1.6}
 .code-row{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#f6f2e9;border-radius:16px;padding:12px 14px;margin-bottom:8px}
@@ -1417,7 +1418,7 @@ function renderMailList(){
 /* ---------- 人物 ---------- */
 function friendTag(pid){
   const f = friendOf(pid); if(!f) return '';
-  return f.status === 'accepted' ? `<span class="friend-badge only-ic" title="好友" aria-label="好友">${ic('check','s')}</span>` : `<span class="friend-badge wait">${ic('clock','s')}等待確認</span>`;
+  return f.status === 'accepted' ? `<span class="friend-badge only-ic">${ic('link','s')}好友</span>` : `<span class="friend-badge wait">${ic('clock','s')}等待確認</span>`;
 }
 function friendBadges(pid){
   const n = inTransit(friendOf(pid));
@@ -1518,6 +1519,7 @@ function meHTML(){
     <form id="profileForm">
       <div class="field"><label>暱稱（筆名）</label><input class="in" name="nickname" maxlength="30" required value="${esc(p.nickname)}"></div>
       <div class="field"><label>帳號（註冊後不能修改）</label><input class="in locked" value="${esc(p.account)}" readonly tabindex="-1"></div>
+      <p class="addr-hint">填好地址後，可以一鍵複製貼給新筆友。不填寫也沒關係</p>
       <div class="field"><label>中文地址</label><textarea class="in addr" name="address" placeholder="讓筆友寄信給你的地址，可多行">${esc(p.address)}</textarea>
         ${p.address ? `<button type="button" class="copy-btn" data-act="copyMyAddr">${ic('copy','s')}複製中文地址</button>` : ''}</div>
       <div class="field"><label>英文地址（選填，給海外筆友）</label><textarea class="in addr" name="addressEn" autocapitalize="words" spellcheck="false" placeholder="Koala Post&#10;No. 5, Eucalyptus Lane&#10;Treetop Zoo, Leafy Town 12345">${esc(p.addressEn)}</textarea>
