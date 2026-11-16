@@ -131,7 +131,10 @@ button,input,select,textarea{font:inherit;color:inherit}
 .fstat span{font-size:13px;color:var(--muted)}
 .fstat b{font-size:20px;font-weight:400;color:var(--deep)}
 .transit-note{display:flex;align-items:center;gap:6px;background:#e9f0fd;color:var(--deep);border-radius:12px;padding:8px 12px;font-size:14px;margin:8px 0 0}
-.addr-hint{font-size:13px;color:var(--deep);margin:0 0 12px;line-height:1.5}
+#profileForm textarea[name=address]{min-height:128px}
+.code-input{text-transform:uppercase;letter-spacing:3px}
+.code-input::placeholder{text-transform:none;letter-spacing:0}
+.field-note{font-size:12px;color:var(--muted);margin:6px 2px 0}
 .about-hint{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--deep);background:#e9f0fd;border-radius:12px;padding:7px 12px;margin:-2px 0 10px}
 #aboutForm textarea.about-in{min-height:130px;height:130px;resize:vertical;line-height:1.6}
 .code-row{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#f6f2e9;border-radius:16px;padding:12px 14px;margin-bottom:8px}
@@ -684,8 +687,8 @@ function askConfirm(text, opt){
 }
 
 /* ================= 後端 ================= */
-const SUPABASE_URL = 'https://wjrncnawkzptdsfhzefg.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_SgB1YEmcF4phewUhaVxIyQ_gmyHhHLQ';
+const SUPABASE_URL = '';
+const SUPABASE_KEY = '';
 const ACCOUNT_DOMAIN = 'koala-post.app';
 
 const IS_LIVE = !!(SUPABASE_URL && SUPABASE_KEY);
@@ -1519,8 +1522,7 @@ function meHTML(){
     <form id="profileForm">
       <div class="field"><label>暱稱（筆名）</label><input class="in" name="nickname" maxlength="30" required value="${esc(p.nickname)}"></div>
       <div class="field"><label>帳號（註冊後不能修改）</label><input class="in locked" value="${esc(p.account)}" readonly tabindex="-1"></div>
-      <p class="addr-hint">填好地址後，可以一鍵複製貼給新筆友。不填寫也沒關係</p>
-      <div class="field"><label>中文地址</label><textarea class="in addr" name="address" placeholder="讓筆友寄信給你的地址，可多行">${esc(p.address)}</textarea>
+      <div class="field"><label>中文地址</label><textarea class="in addr" name="address" placeholder="填好收件地址後可以直接複製給新的筆友，如果設為公開資訊已連結的好友也可以看見。不填寫也沒有關係唷!">${esc(p.address)}</textarea>
         ${p.address ? `<button type="button" class="copy-btn" data-act="copyMyAddr">${ic('copy','s')}複製中文地址</button>` : ''}</div>
       <div class="field"><label>英文地址（選填，給海外筆友）</label><textarea class="in addr" name="addressEn" autocapitalize="words" spellcheck="false" placeholder="Koala Post&#10;No. 5, Eucalyptus Lane&#10;Treetop Zoo, Leafy Town 12345">${esc(p.addressEn)}</textarea>
         ${p.addressEn ? `<button type="button" class="copy-btn" data-act="copyMyAddrEn">${ic('copy','s')}複製英文地址</button>` : ''}</div>
@@ -1733,6 +1735,8 @@ function mailDetail(id){
 }
 
 /* ---------- 人物表單與詳細 ---------- */
+const FRIEND_MSG = {sent:'已送出好友邀請，等對方確認', accepted:'對方也邀請過你，已經成為好友', exists:'已經送過邀請了，請等對方確認',
+  already:'你們已經是好友了', notfound:'找不到這個好友代碼', self:'這是你自己的好友代碼', person_linked:'這位人物已經連結到別的好友'};
 function personForm(p = {}){
   const isNew = !p.id;
   p = {name:'', channel:'筆友', region:'台灣', place:'臺北市', address:'', note:'', ...p};
@@ -1743,6 +1747,8 @@ function personForm(p = {}){
     ${placeFields(p)}
     <div class="field"><label>地址（選填）</label><textarea class="in addr" name="address" placeholder="寄信用的地址，可多行">${esc(p.address)}</textarea></div>
     <div class="field"><label>備註</label><textarea class="in" name="note" placeholder="興趣、Postcrossing 帳號…">${esc(p.note)}</textarea></div>
+    ${isNew ? `<div class="field"><label>好友代碼（選填）</label><input class="in code-input" name="fcode" maxlength="6" placeholder="對方「我的」頁面上的 6 碼代碼" autocomplete="off" autocapitalize="characters" spellcheck="false">
+      <p class="field-note">儲存後會送出好友邀請，對方同意就會成為好友</p></div>` : ''}
     <div class="bar-actions"><button type="button" class="btn ghost" data-act="close">取消</button><button class="btn blue" type="submit">儲存</button></div>
   </form>`);
   const f = $('#personForm');
@@ -1751,11 +1757,23 @@ function personForm(p = {}){
     e.preventDefault();
     const place = readPlace(f);
     if(f.region.value==='海外' && !place){ toast('請填寫國家'); return; }
+    const code = f.fcode ? f.fcode.value.trim().toUpperCase() : '';
+    if(code && !/^[A-Z0-9]{6}$/.test(code)){ toast('好友代碼是 6 個英文字母或數字'); f.fcode.focus(); return; }
     const btn = f.querySelector('[type=submit]'); btn.disabled=true; btn.textContent='儲存中…';
+    let saved = false;
     try{
       const r = await call('savePerson', {id:f.dataset.id||'', name:f.name.value.trim(), channel:f.channel.value, region:f.region.value, place, address:f.address.value.trim(), note:f.note.value.trim()});
-      DB = r.data; closeModal(); render(); toast('已儲存');
-    }catch(err){ toast('儲存失敗：'+(err.message||err)); btn.disabled=false; btn.textContent='儲存'; }
+      DB = r.data; saved = true;
+      if(code){
+        let msg;
+        try{ const fr = await call('sendFriend', code, r.id); msg = FRIEND_MSG[fr] || fr; if(['sent','accepted','exists'].includes(fr)) FRIENDS = await call('getFriends'); }
+        catch(err){ msg = '好友邀請沒有送出：' + err.message; }
+        closeModal(); render(); toast('已儲存，' + msg);
+      }else{ closeModal(); render(); toast('已儲存'); }
+    }catch(err){
+      if(saved){ closeModal(); render(); return; }
+      toast('儲存失敗：'+(err.message||err)); btn.disabled=false; btn.textContent='儲存';
+    }
   });
 }
 function personDetail(id){
@@ -1791,8 +1809,7 @@ function personDetail(id){
     const btn = ff.querySelector('[type=submit]'); btn.disabled = true;
     try{
       const r = await call('sendFriend', code, p.id);
-      const msg = {sent:'已送出好友邀請，等對方確認', accepted:'對方也邀請過你，已經成為好友', exists:'已經送過邀請了，請等對方確認',
-        already:'你們已經是好友了', notfound:'找不到這個好友代碼', self:'這是你自己的好友代碼', person_linked:'這位人物已經連結到別的好友'}[r] || r;
+      const msg = FRIEND_MSG[r] || r;
       toast(msg);
       if(['sent','accepted','exists'].includes(r)){ FRIENDS = await call('getFriends'); personDetail(p.id); render(); }
       else btn.disabled = false;
