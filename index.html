@@ -171,6 +171,8 @@ button,input,select,textarea{font:inherit;color:inherit}
 .chip{border:0;background:#f3efe6;border-radius:999px;padding:5px 12px;font-size:13px;cursor:pointer}
 .chip.on{background:var(--blue);color:var(--ink);box-shadow:0 2px 0 var(--shadow)}
 .count-line{font-size:13px;color:var(--deep);margin:6px 4px 0}
+.count-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.count-row .copy-btn{margin:6px 4px 0}
 
 /* 信件卡 */
 .mail-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;margin-top:12px}
@@ -469,6 +471,7 @@ const CHANNELS = ['筆友','Postcrossing','其他'];
 const AVATAR_COLORS = ['#dcfba6','#b5cff8','#fdd8b4','#e8d9f7','#cdeee6','#fbe7a8'];
 
 const ICONS = {
+  download:'<path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 19.5h14"/>',
   megaphone:'<path d="M4 10v4h3l6 4V6L7 10z"/><path d="M16.5 9a4 4 0 0 1 0 6"/><path d="M19 7a7 7 0 0 1 0 10"/>',
   link:'<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
   refresh:'<path d="M19 12a7 7 0 1 1-2.1-5"/><path d="M19 4.5v4h-4"/>',
@@ -1044,7 +1047,12 @@ const Demo = (() => {
     changePassword: (o,n) => { if(o !== pw) fail('目前的密碼不正確'); checkPassword(String(n)); pw = n; return {token:'demo'}; },
     savePerson: p => ({id:up('people',{...p}), data:clone()}),
     setReplyDismiss: (id, mailId) => { const p = db.people.find(x => x.id === id); if(p) p.replyDismissed = mailId || ''; return {id, data:clone()}; },
-    deletePerson: id => { db.people=db.people.filter(x=>x.id!==id); db.mails.forEach(m => { if(m.personId===id) m.personId=''; }); return {id,data:clone()}; },
+    deletePerson: id => {
+      friends = friends.filter(f => f.myPerson !== id);
+      db.people = db.people.filter(x => x.id !== id);
+      db.mails.forEach(m => { if(m.personId === id) m.personId = ''; });
+      return {id, data:clone()};
+    },
     saveMail: (m,reply) => {
       const id = up('mails',{...m});
       let replyCreated = false;
@@ -1385,7 +1393,7 @@ function mailsHTML(){
     ${chipRow('管道','channel',['全部',...CHANNELS],filt)}
     ${chipRow('地區','region',['全部','台灣','海外'],filt)}
   </div>
-  <div id="mailCount" class="count-line"></div>
+  <div class="count-row"><div id="mailCount" class="count-line"></div><button class="copy-btn" data-act="exportMails">${ic('download','s')}匯出</button></div>
   <div id="mailList" class="mail-list"></div>`;
 }
 function filteredMails(){
@@ -1397,6 +1405,24 @@ function filteredMails(){
     (filt.region==='全部' || m.region===filt.region) &&
     (!q || [personName(m), m.place, m.pcId, m.note, m.date].join(' ').toLowerCase().includes(q))
   ).sort(byDateDesc);
+}
+const csvCell = v => {
+  v = String(v == null ? '' : v);
+  if(/^[=+\-@\t\r]/.test(v)) v = "'" + v;
+  return /[",\r\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
+};
+function exportMails(){
+  const list = filteredMails();
+  if(!list.length) return toast('沒有可以匯出的信件');
+  const head = ['日期','類型','方向','人物','管道','地區','城市／國家','Postcrossing 編號','備註'];
+  const rows = list.map(m => [m.date, m.kind, m.direction, (person(m.personId) || {}).name || '', m.channel, m.region, m.place, m.pcId, m.note]);
+  const csv = '\ufeff' + [head, ...rows].map(r => r.map(csvCell).join(',')).join('\r\n');
+  const url = URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8'}));
+  const a = document.createElement('a');
+  a.href = url; a.download = `koala-post-mails-${today().replace(/-/g, '')}.csv`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+  toast(`已匯出 ${list.length} 筆信件`);
 }
 function mailCard(m){
   const color = m.kind==='信件' ? 'var(--blue)' : 'var(--peach)';
@@ -2158,6 +2184,7 @@ document.addEventListener('click', async e => {
   if(act==='copyMyAddr'){ if(PROFILE && PROFILE.address) copyText(PROFILE.address); return; }
   if(act==='copyMyAddrEn'){ if(PROFILE && PROFILE.addressEn) copyText(PROFILE.addressEn); return; }
   if(act==='help'){ Help.open(); return; }
+  if(act==='exportMails'){ exportMails(); return; }
   if(act==='announce'){ openAnnouncements(); return; }
   if(act==='muteReply' || act==='unmuteReply'){
     const p = person(id); if(!p) return;
@@ -2231,9 +2258,16 @@ document.addEventListener('click', async e => {
     try{ const r = await call('deleteMail', id); DB = r.data; closeModal(); render(); toast('已刪除'); if(FRIENDS.some(f => f.status === 'accepted')) refreshFriends(); }catch(err){ toast('刪除失敗'); }
   }
   if(act==='delPerson'){
-    const n = stat(id).total;
-    if(!await askConfirm(n ? `這位有 ${n} 筆信件紀錄。\n刪除人物後信件會保留，但不再連結。` : '確定要刪除這位嗎？', {title:'刪除人物', ok:'刪除', danger:true})) return;
-    try{ const r = await call('deletePerson', id); DB = r.data; closeModal(); render(); toast('已刪除'); }catch(err){ toast('刪除失敗'); }
+    const f = friendOf(id), n = DB.mails.filter(m => m.personId === id).length;
+    const lines = [];
+    if(n) lines.push(`這位的 ${n} 筆信件紀錄都會保留，但不再連結。`);
+    if(f) lines.push(f.status === 'accepted' ? '也會解除和這位的好友連結。' : '也會取消送出的好友邀請。');
+    if(!await askConfirm(lines.length ? lines.join('\n') : '確定要刪除這位嗎？', {title:'刪除人物', ok:'刪除', danger:true})) return;
+    try{
+      const r = await call('deletePerson', id); DB = r.data;
+      if(f) FRIENDS = await call('getFriends');
+      closeModal(); render(); toast('已刪除');
+    }catch(err){ if(err.message !== 'NEED_LOGIN') toast('刪除失敗'); }
   }
 });
 document.addEventListener('change', e => {
