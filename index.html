@@ -132,6 +132,14 @@ button,input,select,textarea{font:inherit;color:inherit}
 .fstat b{font-size:20px;font-weight:400;color:var(--deep)}
 .transit-note{display:flex;align-items:center;gap:6px;background:#e9f0fd;color:var(--deep);border-radius:12px;padding:8px 12px;font-size:14px;margin:8px 0 0}
 #profileForm textarea[name=address]{min-height:128px}
+.greet{margin-top:10px}
+.greet-label{display:block;font-size:13px;color:var(--muted);margin:0 0 6px}
+.greet .seg{margin-bottom:8px}
+.greet-msg{background:#fff;border-left:3px solid var(--blue);border-radius:10px;padding:8px 12px;margin:0 0 10px;font-size:14px;line-height:1.6;word-break:break-word}
+.invite .greet-msg{background:#f6f2e9}
+textarea.greet-in{min-height:84px}
+.fb-form2{margin-top:8px}
+.fb-send{display:flex;justify-content:flex-end;margin-top:8px}
 .code-input{text-transform:uppercase;letter-spacing:3px}
 .code-input::placeholder{text-transform:none;letter-spacing:0}
 .field-note{font-size:12px;color:var(--muted);margin:6px 2px 0}
@@ -757,8 +765,8 @@ async function currentUser(){
 }
 
 const toProfile = r => ({id:r.id, account:r.account, nickname:r.nickname, address:B64.dec(r.address), addressEn:B64.dec(r.address_en),
-  defaultKind:r.default_kind || '明信片', defaultChannel:r.default_channel || 'Postcrossing',
-  friendCode:r.friend_code || '', about:r.about_me || '', shareAddress:!!r.share_address, shareAddressEn:!!r.share_address_en, shareStats:r.share_stats !== false,
+  defaultKind:r.default_kind || '明信片', defaultChannel:r.default_channel || 'Postcrossing', defaultReply:!!r.default_reply,
+  friendCode:r.friend_code || '', about:r.about_me || '', greeting:r.friend_greeting || '', shareAddress:!!r.share_address, shareAddressEn:!!r.share_address_en, shareStats:r.share_stats !== false,
   created:r.created_at || ''});
 const toFriend = f => ({...f, share: f.share ? {...f.share, address:B64.dec(f.share.address), addressEn:B64.dec(f.share.addressEn)} : null});
 async function loadFriends(){
@@ -843,17 +851,26 @@ const Live = {
     const u = await currentUser();
     const kind = p.defaultKind, channel = p.defaultChannel;
     if(['信件','明信片'].indexOf(kind) < 0 || CHANNELS.indexOf(channel) < 0) fail('預設值不正確');
-    const row = must(await sb.from('profiles').update({default_kind:kind, default_channel:channel}).eq('id', u.id).select().single());
+    const row = must(await sb.from('profiles').update({default_kind:kind, default_channel:channel, default_reply:!!p.defaultReply}).eq('id', u.id).select().single());
     return toProfile(row);
   },
 
   // 好友
   async getFriends(){ await currentUser(); return loadFriends(); },
-  async sendFriend(code, personId){
+  async sendFriend(code, personId, message){
     await currentUser();
     code = str(code, 10).toUpperCase();
     if(!/^[A-Z0-9]{6}$/.test(code)) fail('好友代碼是 6 個英文字母或數字');
-    return must(await sb.rpc('send_friend_request', {p_code:code, p_person:personId}));
+    message = String(message == null ? '' : message).trim();
+    if(message.length > 200) fail('打招呼訊息最多 200 個字');
+    return must(await sb.rpc('send_friend_request', {p_code:code, p_person:personId, p_message:message}));
+  },
+  async saveGreeting(text){
+    const u = await currentUser();
+    text = String(text == null ? '' : text).trim();
+    if(text.length > 200) fail('打招呼訊息最多 200 個字');
+    const row = must(await sb.from('profiles').update({friend_greeting:text}).eq('id', u.id).select().single());
+    return toProfile(row);
   },
   async respondFriend(linkId, accept, personId){
     await currentUser();
@@ -997,8 +1014,8 @@ const Demo = (() => {
     {id:'f1', status:'accepted', outgoing:true, myPerson:'p2', nickname:'Anna 安娜', createdAt:'2026-11-01', acceptedAt:'2026-11-02',
      share:{about:'住在漢堡的插畫家，最近在學中文。\n喜歡海邊、貓頭鷹和復古郵票，回信會慢一點但一定會回！', address:'', addressEn:'Anna Schmidt\nMusterstraße 12\n20095 Hamburg\nGermany', stats:true, recv:42, sent:38},
      theirSent:1, theirLastSent:'2026-11-08', theirRecv:1, myRecv:0, mySent:1},
-    {id:'f2', status:'pending', outgoing:true, myPerson:'p3', nickname:'Yuki', createdAt:'2026-11-10', share:null, theirSent:0, theirRecv:0, myRecv:0, mySent:0},
-    {id:'f3', status:'pending', outgoing:false, myPerson:null, nickname:'小米', createdAt:'2026-11-12', share:null, theirSent:0, theirRecv:0, myRecv:0, mySent:0}
+    {id:'f2', status:'pending', outgoing:true, myPerson:'p3', nickname:'Yuki', message:'Yuki 你好！我是無尾熊，謝謝你的明信片，我們加個好友吧～', createdAt:'2026-11-10', share:null, theirSent:0, theirRecv:0, myRecv:0, mySent:0},
+    {id:'f3', status:'pending', outgoing:false, myPerson:null, nickname:'小米', message:'嗨！我是小米，在 Threads 看到你的明信片分享，想跟你交換貓咪郵票～', createdAt:'2026-11-12', share:null, theirSent:0, theirRecv:0, myRecv:0, mySent:0}
   ];
   const fclone = () => JSON.parse(JSON.stringify(friends.map(f => {
     if(f.status !== 'accepted' || !f.myPerson) return f;
@@ -1009,8 +1026,8 @@ const Demo = (() => {
   })));
   const linkedTo = (pid, skip) => pid && friends.some(f => f.id !== skip && f.myPerson === pid);
   const up = (key,o) => { if(!o.id){ o.id=key[0]+Date.now(); o.created=new Date().toISOString(); db[key].push(o);} else { const i=db[key].findIndex(x=>x.id===o.id); db[key][i]={...db[key][i],...o}; } return o.id; };
-  let me = {id:'u1', account:'koala', nickname:'無尾熊', defaultKind:'明信片', defaultChannel:'Postcrossing',
-    friendCode:'K7M2QX', about:'最近在收集各地的貓咪郵票。\n喜歡手繪明信片、植物和下雨天的咖啡店。', shareAddress:false, shareAddressEn:false, shareStats:true, address:'樹葉鎮樹頂動物園\n尤加利巷 5 號\n無尾熊郵局', addressEn:'Koala Post\nNo. 5, Eucalyptus Lane\nTreetop Zoo, Leafy Town 12345', created:'2026-11-09'};
+  let me = {id:'u1', account:'koala', nickname:'無尾熊', defaultKind:'明信片', defaultChannel:'Postcrossing', defaultReply:false,
+    friendCode:'K7M2QX', greeting:'我的 Threads 是 koala.stamp，歡迎一起來當筆友！', about:'最近在收集各地的貓咪郵票。\n喜歡手繪明信片、植物和下雨天的咖啡店。', shareAddress:false, shareAddressEn:false, shareStats:true, address:'樹葉鎮樹頂動物園\n尤加利巷 5 號\n無尾熊郵局', addressEn:'Koala Post\nNo. 5, Eucalyptus Lane\nTreetop Zoo, Leafy Town 12345', created:'2026-11-09'};
   let pw = 'koala123';
   const ok = () => ({token:'demo', profile:{...me}});
   return {
@@ -1021,13 +1038,14 @@ const Demo = (() => {
     register: f => { checkAccount(String(f.account).trim()); checkNickname(String(f.nickname||'').trim()); checkPassword(String(f.password)); me = {...me, nickname:f.nickname, account:String(f.account).trim(), address:''}; pw = f.password; return ok(); },
     getData: () => ({...clone(), profile:{...me}, friends:fclone()}),
     getFriends: () => fclone(),
-    sendFriend: (code, pid) => {
+    saveGreeting: t => { t = String(t || '').trim(); if(t.length > 200) fail('打招呼訊息最多 200 個字'); me = {...me, greeting:t}; return {...me}; },
+    sendFriend: (code, pid, message) => {
       code = String(code || '').trim().toUpperCase();
       if(!/^[A-Z0-9]{6}$/.test(code)) fail('好友代碼是 6 個英文字母或數字');
       if(code === me.friendCode) return 'self';
       if(linkedTo(pid)) return 'person_linked';
       if(code === 'AAAAAA') return 'notfound';
-      friends.unshift({id:'f'+Date.now(), status:'pending', outgoing:true, myPerson:pid, nickname:'新朋友', createdAt:today(), share:null, theirSent:0, theirRecv:0, myRecv:0, mySent:0});
+      friends.unshift({id:'f'+Date.now(), status:'pending', outgoing:true, myPerson:pid, nickname:'新朋友', message:String(message || '').trim(), createdAt:today(), share:null, theirSent:0, theirRecv:0, myRecv:0, mySent:0});
       return 'sent';
     },
     respondFriend: (id, accept, pid) => {
@@ -1043,7 +1061,7 @@ const Demo = (() => {
     saveAbout: t => { t = String(t || '').trim(); if(t.length > 300) fail('關於我最多 300 個字'); me = {...me, about:t}; return {...me}; },
     saveShare: p => { me = {...me, shareAddress:!!p.shareAddress, shareAddressEn:!!p.shareAddressEn, shareStats:!!p.shareStats}; return {...me}; },
     saveProfile: p => { me = {...me, nickname:p.nickname, address:p.address, addressEn:p.addressEn}; return {...me}; },
-    savePrefs: p => { me = {...me, defaultKind:p.defaultKind, defaultChannel:p.defaultChannel}; return {...me}; },
+    savePrefs: p => { me = {...me, defaultKind:p.defaultKind, defaultChannel:p.defaultChannel, defaultReply:!!p.defaultReply}; return {...me}; },
     changePassword: (o,n) => { if(o !== pw) fail('目前的密碼不正確'); checkPassword(String(n)); pw = n; return {token:'demo'}; },
     savePerson: p => ({id:up('people',{...p}), data:clone()}),
     setReplyDismiss: (id, mailId) => { const p = db.people.find(x => x.id === id); if(p) p.replyDismissed = mailId || ''; return {id, data:clone()}; },
@@ -1509,6 +1527,11 @@ function friendsCardHTML(p){
       <div class="code-acts"><button class="copy-btn" data-act="copyFriendCode">${ic('copy','s')}複製</button><button class="copy-btn" data-act="newFriendCode">${ic('refresh','s')}換一組</button></div>
     </div>
     <p class="muted small" style="margin:0 0 4px">把代碼告訴筆友，對方在人物頁輸入後，你按下接受就會成為好友</p>
+    <div class="fsub">預設打招呼訊息</div>
+    <form id="greetForm">
+      <textarea class="in greet-in" name="greeting" maxlength="200" placeholder="送出好友邀請時會附上這段話，例如：我的 Threads 是 koala.stamp，歡迎一起來當筆友！">${esc(p.greeting || '')}</textarea>
+      <div class="bar-actions" style="margin-top:8px"><span class="muted small" id="greetCount">${(p.greeting || '').length} / 200</span><button class="btn blue" type="submit">${ic('check','s')}儲存</button></div>
+    </form>
     <div class="fsub">公開給好友的資料</div>
     <form id="shareForm">
       ${tg('shareAddress','中文地址', p.shareAddress)}
@@ -1517,8 +1540,8 @@ function friendsCardHTML(p){
     </form>
     ${inv.length ? `<div class="fsub">好友邀請</div>${inv.map(f => `<div class="invite">
       <div class="who"><b>${esc(f.nickname)}</b> 想加你為好友</div>
-      <label class="muted small">對方是你人物清單裡的哪一位？</label>
-      <select class="in" data-pick="${f.id}">${personOptions(f.id, f.nickname)}</select>
+      ${f.message ? `<div class="greet-msg">${esc(f.message).replace(/\n/g,'<br>')}</div>` : '<div class="muted small" style="margin-bottom:8px">對方沒有留下打招呼訊息</div>'}
+      <p class="muted small" style="margin:0 0 4px">接受後會連結到同名的人物，沒有的話會自動新增一位</p>
       <div class="bar"><button class="btn ghost" data-act="declineFriend" data-id="${f.id}">婉拒</button><button class="btn blue" data-act="acceptFriend" data-id="${f.id}">${ic('check','s')}接受</button></div>
     </div>`).join('')}` : ''}
     ${unmapped.length ? `<div class="fsub">還沒對應到人物的好友</div>${unmapped.map(f => `<div class="invite">
@@ -1565,11 +1588,12 @@ function meHTML(){
   </section>
   ${friendsCardHTML(p)}
   <section class="paper card">
-    <h3>${ic('letter')}新增信件的預設</h3>
-    <p class="muted small" style="margin:-4px 0 12px">按「新增信件」時，會先幫你選好這兩項</p>
+    <h3>${ic('letter')}信件預設</h3>
+    <p class="muted small" style="margin:-4px 0 12px">按「新增信件」時，會先幫你選好這些項目</p>
     <form id="prefForm">
       <div class="field"><label>類型</label>${seg('defKind',['信件','明信片'],p.defaultKind || '明信片')}</div>
-      <div class="field" style="margin-bottom:0"><label>管道</label>${seg('defChannel',CHANNELS,p.defaultChannel || 'Postcrossing')}</div>
+      <div class="field"><label>管道</label>${seg('defChannel',CHANNELS,p.defaultChannel || 'Postcrossing')}</div>
+      <label class="toggle" style="margin-bottom:0"><span>收到信時，預設勾選「要回信」</span><input type="checkbox" name="defReply" ${p.defaultReply ? 'checked' : ''}></label>
     </form>
   </section>
   <section class="paper card">
@@ -1597,15 +1621,17 @@ function bindMe(){
   // 預設值：點一下就儲存
   const pr = $('#prefForm');
   pr.addEventListener('change', async () => {
-    const want = {defaultKind: pr.defKind.value, defaultChannel: pr.defChannel.value};
+    const want = {defaultKind: pr.defKind.value, defaultChannel: pr.defChannel.value, defaultReply: pr.defReply.checked};
+    const replyChanged = want.defaultReply !== !!(PROFILE && PROFILE.defaultReply);
     try{
       PROFILE = await call('savePrefs', want);
-      toast('已設為預設：' + want.defaultKind + '・' + want.defaultChannel);
+      toast(replyChanged ? (want.defaultReply ? '收到信時會預設勾選「要回信」' : '收到信時不再預設勾選「要回信」') : '已設為預設：' + want.defaultKind + '・' + want.defaultChannel);
     }catch(err){
       if(err.message !== 'NEED_LOGIN') toast('儲存失敗：' + err.message);
       const p = PROFILE || {};
       pr.querySelectorAll('[name=defKind]').forEach(r => r.checked = r.value === (p.defaultKind || '明信片'));
       pr.querySelectorAll('[name=defChannel]').forEach(r => r.checked = r.value === (p.defaultChannel || 'Postcrossing'));
+      pr.defReply.checked = !!p.defaultReply;
     }
   });
   const af = $('#aboutForm');
@@ -1614,6 +1640,15 @@ function bindMe(){
     e.preventDefault();
     const btn = af.querySelector('[type=submit]'); btn.disabled = true;
     try{ PROFILE = await call('saveAbout', af.about.value); toast('關於我已儲存'); }
+    catch(err){ if(err.message !== 'NEED_LOGIN') toast('儲存失敗：' + err.message); }
+    btn.disabled = false;
+  });
+  const gf = $('#greetForm');
+  gf.greeting.addEventListener('input', () => { $('#greetCount').textContent = gf.greeting.value.length + ' / 200'; });
+  gf.addEventListener('submit', async e => {
+    e.preventDefault();
+    const btn = gf.querySelector('[type=submit]'); btn.disabled = true;
+    try{ PROFILE = await call('saveGreeting', gf.greeting.value); toast('預設打招呼訊息已儲存'); }
     catch(err){ if(err.message !== 'NEED_LOGIN') toast('儲存失敗：' + err.message); }
     btn.disabled = false;
   });
@@ -1675,7 +1710,7 @@ function mailForm(m = {}){
       <div class="field"><label>方向</label>${seg('direction',['收到','寄出','待寄出'],m.direction)}
         ${replied
           ? `<p class="reply-done ${m.direction==='收到'?'':'hidden'}">${ic('check','s')}已經為這封信建立過回信</p><input type="hidden" name="reply" value="">`
-          : `<label class="chk reply-opt ${m.direction==='收到'?'':'hidden'}"><input type="checkbox" name="reply"> 要回信（儲存後自動加一筆「待寄出」）</label>`}</div>
+          : `<label class="chk reply-opt ${m.direction==='收到'?'':'hidden'}"><input type="checkbox" name="reply" ${isNew && m.direction==='收到' && P.defaultReply ? 'checked' : ''}> 要回信（儲存後自動加一筆「待寄出」）</label>`}</div>
     </div>
     <div class="field"><label>日期</label><input class="in" type="date" name="date" value="${esc(m.date)}" required></div>
     <div class="field"><label>是誰</label>
@@ -1692,7 +1727,7 @@ function mailForm(m = {}){
   f.addEventListener('change', async e => {
     const t = e.target;
     if(t.name==='region') syncPlace(f);
-    if(t.name==='direction'){ const o = f.querySelector('.reply-opt, .reply-done'); if(o) o.classList.toggle('hidden', t.value!=='收到'); if(t.value!=='收到' && f.reply.type==='checkbox') f.reply.checked = false; }
+    if(t.name==='direction'){ const o = f.querySelector('.reply-opt, .reply-done'); if(o) o.classList.toggle('hidden', t.value!=='收到'); if(f.reply.type==='checkbox') f.reply.checked = t.value==='收到' && isNew && !!P.defaultReply; }
     if(t.name==='channel') f.querySelector('.pc').classList.toggle('hidden', t.value!=='Postcrossing');
     if(t.name==='personId'){
       f.newName.classList.toggle('hidden', t.value!=='__new');
@@ -1761,6 +1796,26 @@ function mailDetail(id){
 }
 
 /* ---------- 人物表單與詳細 ---------- */
+function greetPicker(){
+  const def = (PROFILE && PROFILE.greeting) || '';
+  const own = !def;
+  return `<div class="greet">
+    <label class="greet-label">打招呼訊息</label>
+    ${seg('gmode', ['預設訊息', '重新輸入'], own ? '重新輸入' : '預設訊息')}
+    <div class="greet-msg greet-def ${own ? 'hidden' : ''}">${def ? esc(def).replace(/\n/g, '<br>') : ''}</div>
+    <textarea class="in greet-in ${own ? '' : 'hidden'}" name="gtext" maxlength="200" placeholder="${def ? '跟對方打聲招呼吧' : '跟對方打聲招呼吧（也可以到「我的 → 好友」設定預設訊息）'}"></textarea>
+  </div>`;
+}
+function bindGreet(form){
+  form.addEventListener('change', e => {
+    if(e.target.name !== 'gmode') return;
+    const own = e.target.value === '重新輸入';
+    form.querySelector('.greet-def').classList.toggle('hidden', own);
+    form.querySelector('.greet-in').classList.toggle('hidden', !own);
+    if(own) form.gtext.focus();
+  });
+}
+const readGreeting = form => (form.gmode && form.gmode.value === '重新輸入') ? form.gtext.value.trim() : ((PROFILE && PROFILE.greeting) || '');
 const FRIEND_MSG = {sent:'已送出好友邀請，等對方確認', accepted:'對方也邀請過你，已經成為好友', exists:'已經送過邀請了，請等對方確認',
   already:'你們已經是好友了', notfound:'找不到這個好友代碼', self:'這是你自己的好友代碼', person_linked:'這位人物已經連結到別的好友'};
 function personForm(p = {}){
@@ -1774,11 +1829,16 @@ function personForm(p = {}){
     <div class="field"><label>地址（選填）</label><textarea class="in addr" name="address" placeholder="寄信用的地址，可多行">${esc(p.address)}</textarea></div>
     <div class="field"><label>備註</label><textarea class="in" name="note" placeholder="興趣、Postcrossing 帳號…">${esc(p.note)}</textarea></div>
     ${isNew ? `<div class="field"><label>好友代碼（選填）</label><input class="in code-input" name="fcode" maxlength="6" placeholder="對方「我的」頁面上的 6 碼代碼" autocomplete="off" autocapitalize="characters" spellcheck="false">
-      <p class="field-note">儲存後會送出好友邀請，對方同意就會成為好友</p></div>` : ''}
+      <p class="field-note">儲存後會送出好友邀請，對方同意就會成為好友</p>
+      <div class="greet-wrap hidden">${greetPicker()}</div></div>` : ''}
     <div class="bar-actions"><button type="button" class="btn ghost" data-act="close">取消</button><button class="btn blue" type="submit">儲存</button></div>
   </form>`);
   const f = $('#personForm');
   f.addEventListener('change', e => { if(e.target.name==='region') syncPlace(f); });
+  if(f.fcode){
+    bindGreet(f);
+    f.fcode.addEventListener('input', () => f.querySelector('.greet-wrap').classList.toggle('hidden', !f.fcode.value.trim()));
+  }
   f.addEventListener('submit', async e => {
     e.preventDefault();
     const place = readPlace(f);
@@ -1792,7 +1852,7 @@ function personForm(p = {}){
       DB = r.data; saved = true;
       if(code){
         let msg;
-        try{ const fr = await call('sendFriend', code, r.id); msg = FRIEND_MSG[fr] || fr; if(['sent','accepted','exists'].includes(fr)) FRIENDS = await call('getFriends'); }
+        try{ const fr = await call('sendFriend', code, r.id, readGreeting(f)); msg = FRIEND_MSG[fr] || fr; if(['sent','accepted','exists'].includes(fr)) FRIENDS = await call('getFriends'); }
         catch(err){ msg = '好友邀請沒有送出：' + err.message; }
         closeModal(); render(); toast('已儲存，' + msg);
       }else{ closeModal(); render(); toast('已儲存'); }
@@ -1828,13 +1888,14 @@ function personDetail(id){
       <button class="btn danger" data-act="delPerson" data-id="${p.id}">${ic('trash','s')}刪除</button>
     </div>`);
   const ff = $('#friendForm');
+  if(ff) bindGreet(ff);
   if(ff) ff.addEventListener('submit', async e => {
     e.preventDefault();
     const code = ff.code.value.trim().toUpperCase();
     if(!code) return toast('請輸入好友代碼');
     const btn = ff.querySelector('[type=submit]'); btn.disabled = true;
     try{
-      const r = await call('sendFriend', code, p.id);
+      const r = await call('sendFriend', code, p.id, readGreeting(ff));
       const msg = FRIEND_MSG[r] || r;
       toast(msg);
       if(['sent','accepted','exists'].includes(r)){ FRIENDS = await call('getFriends'); personDetail(p.id); render(); }
@@ -1847,11 +1908,16 @@ function friendSection(p){
   if(!f) return `<div class="friend-box">
       <div class="fb-title">${ic('link','s')}連結好友帳號</div>
       <p class="muted small" style="margin:4px 0 0">輸入對方在「我的」頁面上的好友代碼，對方同意後，就能看到彼此的「關於我」、公開的資料和正在路上的信</p>
-      <form class="fb-form" id="friendForm"><input class="in" name="code" maxlength="6" placeholder="例如 K7M2QX" autocomplete="off" autocapitalize="characters" spellcheck="false"><button class="btn blue" type="submit">送出邀請</button></form>
+      <form id="friendForm" class="fb-form2">
+        <input class="in code-input" name="code" maxlength="6" placeholder="好友代碼，例如 K7M2QX" autocomplete="off" autocapitalize="characters" spellcheck="false">
+        ${greetPicker()}
+        <div class="fb-send"><button class="btn blue" type="submit">送出邀請</button></div>
+      </form>
     </div>`;
   if(f.status !== 'accepted') return `<div class="friend-box">
       <div class="fb-title">${ic('clock','s')}已送出好友邀請給「${esc(f.nickname)}」</div>
       <p class="muted small" style="margin:4px 0 8px">等對方在「我的」頁面按下接受，就會成為好友</p>
+      ${f.message ? `<div class="greet-label">你的打招呼訊息</div><div class="greet-msg">${esc(f.message).replace(/\n/g,'<br>')}</div>` : ''}
       <button class="copy-btn" style="margin:0" data-act="removeFriend" data-id="${f.id}" data-kind="cancel">取消邀請</button>
     </div>`;
   const sh = f.share || {};
@@ -1871,6 +1937,11 @@ function friendSection(p){
 async function markSent(ids, btn){
   ids = [].concat(ids).filter(Boolean);
   if(!ids.length) return;
+  const one = ids.length === 1 ? DB.mails.find(x => x.id === ids[0]) : null;
+  const who = one && person(one.personId);
+  const msg = ids.length > 1 ? `要把勾選的 ${ids.length} 封標記為已寄出嗎？\n寄出日期會記為今天（${today()}）。`
+    : `要把${who ? `寄給「${who.name}」的這封` : '這封'}標記為已寄出嗎？\n寄出日期會記為今天（${today()}）。`;
+  if(!await askConfirm(msg, {title:'標記為已寄出', ok:'已寄出'})) return;
   if(btn){ btn.disabled = true; btn.dataset.label = btn.innerHTML; btn.textContent = '處理中…'; }
   try{
     const r = await call('markSent', ids);
@@ -2229,7 +2300,11 @@ document.addEventListener('click', async e => {
     const sel = document.querySelector(`[data-pick="${id}"]`);
     el.disabled = true;
     try{
-      let pid = sel ? sel.value : '';
+      let pid = sel ? sel.value : '__new';
+      if(act==='acceptFriend'){
+        const same = freePeople(id).find(x => x.name.trim().toLowerCase() === (f.nickname || '').trim().toLowerCase());
+        if(same) pid = same.id;
+      }
       if(pid === '__new'){
         const r = await call('savePerson', {name:f.nickname, channel:'筆友', region:'台灣', place:'', address:'', note:''});
         DB = r.data; pid = r.id;
