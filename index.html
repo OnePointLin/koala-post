@@ -1257,11 +1257,35 @@ const friendOf = pid => FRIENDS.find(f => f.myPerson === pid && (f.status === 'a
 const inTransit = f => f && f.status === 'accepted' ? Math.max(0, (f.theirSent || 0) - (f.myRecv || 0)) : 0;
 const incomingInvites = () => FRIENDS.filter(f => f.status === 'pending' && !f.outgoing);
 const freePeople = skipLink => DB.people.filter(p => !FRIENDS.some(f => f.id !== skipLink && f.myPerson === p.id));
-async function refreshFriends(){
-  try{ FRIENDS = await call('getFriends'); }catch(e){ return; }
-  if(!$('#modal').classList.contains('hidden')) return;
+let friendsAt = 0, friendsBusy = false, friendsPending = false;
+const typing = () => { const a = document.activeElement; return !!a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) && a.type !== 'checkbox' && a.type !== 'radio'; };
+const appOn = () => !!PROFILE && !$('#tabs').classList.contains('hidden') && document.visibilityState === 'visible';
+async function refreshFriends(minGap){
+  if(friendsBusy || (minGap && Date.now() - friendsAt < minGap)) return;
+  friendsBusy = true;
+  const before = JSON.stringify(FRIENDS);
+  try{ FRIENDS = await call('getFriends'); friendsAt = Date.now(); }catch(e){ friendsBusy = false; return; }
+  friendsBusy = false;
+  if(JSON.stringify(FRIENDS) !== before || friendsPending) redrawFriends();
+}
+function redrawFriends(){
+  if(typing()){ friendsPending = true; return; }
+  friendsPending = false;
+  const m = $('#modal');
+  if(!m.classList.contains('hidden')){
+    const del = m.querySelector('[data-act=delPerson]');
+    const filled = [...m.querySelectorAll('input[type=text], input:not([type]), textarea')].some(x => x.value.trim());
+    if(del && !filled){
+      const sh = m.querySelector('.sheet'), top = sh ? sh.scrollTop : 0;
+      personDetail(del.dataset.id);
+      const sh2 = m.querySelector('.sheet'); if(sh2){ sh2.style.animation = 'none'; sh2.scrollTop = top; }
+    }
+  }
   render();
 }
+document.addEventListener('focusout', () => { if(friendsPending) setTimeout(() => { if(friendsPending) redrawFriends(); }, 300); });
+setInterval(() => { if(IS_LIVE && appOn()) refreshFriends(20000); }, 30000);
+document.addEventListener('visibilitychange', () => { if(appOn()) refreshFriends(5000); });
 let view = 'home';
 const filt = {q:'', kind:'全部', dir:'全部', channel:'全部', region:'全部'};
 const pf = {q:'', channel:'全部', reply:'全部', friend:'全部'};
@@ -1541,7 +1565,8 @@ function friendsCardHTML(p){
     ${inv.length ? `<div class="fsub">好友邀請</div>${inv.map(f => `<div class="invite">
       <div class="who"><b>${esc(f.nickname)}</b> 想加你為好友</div>
       ${f.message ? `<div class="greet-msg">${esc(f.message).replace(/\n/g,'<br>')}</div>` : '<div class="muted small" style="margin-bottom:8px">對方沒有留下打招呼訊息</div>'}
-      <p class="muted small" style="margin:0 0 4px">接受後會連結到同名的人物，沒有的話會自動新增一位</p>
+      <label class="muted small">對方是你人物清單裡的哪一位？</label>
+      <select class="in" data-pick="${f.id}">${personOptions(f.id, f.nickname)}</select>
       <div class="bar"><button class="btn ghost" data-act="declineFriend" data-id="${f.id}">婉拒</button><button class="btn blue" data-act="acceptFriend" data-id="${f.id}">${ic('check','s')}接受</button></div>
     </div>`).join('')}` : ''}
     ${unmapped.length ? `<div class="fsub">還沒對應到人物的好友</div>${unmapped.map(f => `<div class="invite">
@@ -2234,7 +2259,7 @@ document.addEventListener('click', async e => {
   if(e.target.closest('.pick-box')) return;   // 勾選框：只勾選，不打開信件
   const el = e.target.closest('[data-act]'); if(!el) return;
   const {act, id} = el.dataset;
-  if(act==='tab'){ view = el.dataset.v; render(); window.scrollTo(0,0); }
+  if(act==='tab'){ view = el.dataset.v; render(); window.scrollTo(0,0); if(appOn()) refreshFriends(5000); }
   if(act==='close') closeModal();
   if(act==='chip'){
     const st = el.dataset.s==='m' ? filt : pf;
@@ -2300,11 +2325,7 @@ document.addEventListener('click', async e => {
     const sel = document.querySelector(`[data-pick="${id}"]`);
     el.disabled = true;
     try{
-      let pid = sel ? sel.value : '__new';
-      if(act==='acceptFriend'){
-        const same = freePeople(id).find(x => x.name.trim().toLowerCase() === (f.nickname || '').trim().toLowerCase());
-        if(same) pid = same.id;
-      }
+      let pid = sel ? sel.value : '';
       if(pid === '__new'){
         const r = await call('savePerson', {name:f.nickname, channel:'筆友', region:'台灣', place:'', address:'', note:''});
         DB = r.data; pid = r.id;
@@ -2324,7 +2345,7 @@ document.addEventListener('click', async e => {
   if(act==='newMail') mailForm();
   if(act==='newPerson') personForm();
   if(act==='openMail') mailDetail(id);
-  if(act==='openPerson') personDetail(id);
+  if(act==='openPerson'){ personDetail(id); if(appOn()) refreshFriends(); }
   if(act==='editMail') mailForm(DB.mails.find(m => m.id===id));
   if(act==='editPerson') personForm(person(id));
   if(act==='mailFor'){ const p = person(id); mailForm({direction:el.dataset.dir || '收到', personId:p.id, channel:p.channel, region:p.region, place:p.place}); }
