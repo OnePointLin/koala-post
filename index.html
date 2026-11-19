@@ -821,11 +821,12 @@ function sbErr(error){
   const m = String((error && (error.message || error.error_description)) || error || '');
   const code = (error && error.code) || '';
   const status = error && error.status;
+  if(/KP_CLOSED|user is banned|user_banned/i.test(m) || code === 'user_banned') return new Error('CLOSED');
   if(/Invalid login credentials/i.test(m)) return new Error('MSG:帳號或密碼不正確');
   if(/different from the old/i.test(m)) return new Error('MSG:新密碼不能和目前的密碼一樣');
   if(/rate limit|too many/i.test(m) || status === 429) return new Error('MSG:嘗試太多次了，請過幾分鐘再試');
   if(/already registered|already exists/i.test(m)) return new Error('MSG:這個帳號已經有人使用了，請換一個');
-  if(/Database error saving new user/i.test(m)) return new Error('MSG:註冊失敗，請確認邀請碼和帳號是否正確');
+  if(/Database error saving new user/i.test(m)) return new Error('MSG:註冊失敗，邀請碼可能不正確或已經被使用過了');
   if(/Failed to fetch|NetworkError|Load failed/i.test(m)) return new Error('MSG:連不上伺服器，請確認網路後再試');
   if(code === 'PGRST301' || /JWT|not authenticated/i.test(m) || status === 401) return new Error('AUTH');
   return new Error('MSG:' + (m || '發生錯誤，請再試一次'));
@@ -846,7 +847,7 @@ const toProfile = r => ({id:r.id, account:r.account, nickname:r.nickname, addres
 const toFriend = f => ({...f, share: f.share ? {...f.share, address:B64.dec(f.share.address), addressEn:B64.dec(f.share.addressEn)} : null});
 async function loadFriends(){
   try{ return (must(await sb.rpc('my_friend_links')) || []).map(toFriend); }
-  catch(e){ if(e.message === 'AUTH') throw e; return []; }
+  catch(e){ if(e.message === 'AUTH' || e.message === 'CLOSED') throw e; return []; }
 }
 const toPerson = r => ({replyDismissed:r.reply_dismissed || '', id:r.id, name:r.name, channel:r.channel, region:r.region, place:r.place, address:B64.dec(r.address), note:B64.dec(r.note), created:r.created_at || ''});
 const toMail = r => ({id:r.id, date:r.date || '', kind:r.kind, direction:r.direction, personId:r.person_id || '', channel:r.channel, region:r.region, place:r.place, pcId:r.pc_id || '', note:B64.dec(r.note), created:r.created_at || '', replyOf:r.reply_of || ''});
@@ -892,7 +893,7 @@ const Live = {
     const account = str(f.account, 40), nickname = str(f.nickname, 30), password = String(f.password || ''), invite = str(f.invite, 100);
     checkAccount(account); checkNickname(nickname); checkPassword(password);
     const chk = must(await sb.rpc('signup_check', {p_account:account, p_invite:invite}));
-    if(chk === 'invite') fail('邀請碼不正確');
+    if(chk === 'invite') fail('邀請碼不正確，或已經被使用過了');
     if(chk === 'taken') fail('這個帳號已經有人使用了，請換一個');
     const data = must(await sb.auth.signUp({email:toEmail(account), password, options:{data:{account, nickname, invite}}}));
     if(!data.session) fail('帳號已建立，但還不能登入：請管理員到 Supabase 關閉「Confirm email」');
@@ -1261,6 +1262,10 @@ function call(fn, ...args){
     return Live[fn](...args);
   };
   return run().catch(err => {
+    if(/\bCLOSED\b/.test(String(err && err.message))){
+      saveToken(''); if(sb) sb.auth.signOut({scope:'local'}).catch(() => {});
+      PROFILE = null; showAuth('login', '這個帳號已經被關閉，如有疑問請聯絡管理員'); throw new Error('NEED_LOGIN');
+    }
     if(isAuthErr(err)){ saveToken(''); showAuth('login', '登入已過期，請重新登入'); throw new Error('NEED_LOGIN'); }
     throw new Error(errText(err));
   });
@@ -1340,7 +1345,7 @@ async function showAuth(mode, msg){
       <div class="field"><label>帳號${isReg ? '（英文字母或數字，登入用，不能和別人重複）' : ''}</label><input class="in" name="account" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" required minlength="2" maxlength="40" pattern="[A-Za-z0-9]{2,40}" title="只能用英文字母和數字，2～40 個字"></div>
       <div class="field"><label>密碼${isReg ? '（至少 6 個字）' : ''}</label><input class="in" type="password" name="password" autocomplete="${isReg?'new-password':'current-password'}" required minlength="${isReg?6:1}"></div>
       ${isReg ? `<div class="field"><label>再輸入一次密碼</label><input class="in" type="password" name="password2" autocomplete="new-password" required></div>` : ''}
-      ${isReg && CONFIG.inviteRequired ? `<div class="field"><label>邀請碼</label><input class="in" name="invite" required></div>` : ''}
+      ${isReg && CONFIG.inviteRequired ? `<div class="field"><label>邀請碼</label><input class="in" name="invite" required maxlength="6" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="管理員給你的 6 碼邀請碼" style="text-transform:uppercase;letter-spacing:2px"></div>` : ''}
       ${isReg ? `<p class="muted small">收件地址可以註冊後在「我的」頁面填寫</p>` : ''}
       <button class="btn blue wide" type="submit">${ic('check','s')}${isReg ? '註冊並進入' : '登入'}</button>
       ${msg ? `<p class="login-msg">${esc(msg)}</p>` : ''}
@@ -1376,7 +1381,7 @@ async function showAuth(mode, msg){
       if(MAINT && MAINT.on) setTimeout(() => toast('目前是維護模式，只有管理員看得到網站'), 900);
       if(r.mustChange) setTimeout(() => toast('你用的是臨時密碼，請在下方修改成新密碼'), 600);
       if(isReg) toast('註冊成功，歡迎！');
-    }catch(err){ btn.disabled = false; showAuthMsg(err.message); }
+    }catch(err){ if(err.message === 'NEED_LOGIN') return; btn.disabled = false; showAuthMsg(err.message); }
   });
 }
 function showAuthMsg(msg){
@@ -2412,7 +2417,8 @@ function icon(name,x,y,s,c){ // 線條小圖示，24 單位
     user:'<circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20c0-4.2 3.4-6.6 7.5-6.6s7.5 2.4 7.5 6.6"/>',
     lock:'<rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/>',
     send:'<path d="M12 15V4.5M8 8.5l4-4 4 4"/><path d="M4 15v4.5h16V15"/>',
-    inbox:'<path d="M12 4v10M8 10.5l4 4 4-4"/><path d="M4 15v4.5h16V15"/>'
+    inbox:'<path d="M12 4v10M8 10.5l4 4 4-4"/><path d="M4 15v4.5h16V15"/>',
+    gift:'<rect x="3.5" y="8.5" width="17" height="4" rx="1"/><path d="M5 12.5V20h14v-7.5"/><path d="M12 8.5V20"/><path d="M12 8.5C10.5 5 6.5 4.5 6.5 7c0 1.5 3 1.5 5.5 1.5zM12 8.5C13.5 5 17.5 4.5 17.5 7c0 1.5-3 1.5-5.5 1.5z"/>'
   };
   return `<g transform="translate(${x} ${y}) scale(${s/24})" fill="none" stroke="${c||INK}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${P[name]}</g>`;
 }
@@ -2512,22 +2518,12 @@ const friends = box(8,8,284,64,16)
   + pill(150,162,58,26,CHIP,'婉拒',11) + pill(214,162,64,26,BLUE,'接受',11)
   + ringRect(210,158,72,34,17);
 
-const eventPic = `<defs><linearGradient id="hSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4C6FB8"/><stop offset="1" stop-color="#9FBCF0"/></linearGradient></defs>`
-  + `<rect x="8" y="8" width="284" height="70" rx="16" fill="url(#hSky)"/>`
-  + [30,70,120,160,200,250,275,95,185].map((x,i)=>`<circle cx="${x}" cy="${16+(i*13)%40}" r="1.8" fill="#fff" opacity=".8"/>`).join('')
-  + `<path d="M8 66 Q80 56 150 66 T292 62 V70 Q292 78 284 78 H16 Q8 78 8 70Z" fill="#FFFDF7"/>`
-  + `<path d="M252 30 l12 16 h-6 l10 12 h-32 l10 -12 h-6z" fill="#7CBF78"/>`
-  + t(22,36,'聖誕卡片交換',15,{a:'start',c:'#fff'}) + t(22,54,'大家都是聖誕老公公',9.5,{a:'start',c:'#fff'})
-  + box(8,86,284,74,16)
-  + t(22,106,'對方已收到 / 已抽收件人',9.5,{a:'start',c:SOFT}) + `<text x="278" y="108" font-size="15" text-anchor="end" fill="${DEEP}">1 / 2</text>`
-  + box(22,114,256,9,4.5,'#E9F0FD') + box(22,114,128,9,4.5,'#90D58C')
-  + box(22,130,256,24,12,'#F6A5A0') + t(150,146,'抽出隨機收件人',11)
-  + ringRect(18,126,264,32,16)
-  + box(8,168,284,56,16)
-  + `<circle cx="34" cy="186" r="12" fill="${GREEN}"/>` + t(34,190,'小',11) + t(54,190,'小米',12,{a:'start'})
-  + pill(220,176,58,20,'#E1F4C2','已收到',9.5,'#4A6E30')
-  + box(22,202,256,18,8,'#FFF6DC') + t(30,215,'寫在卡片上的代碼',8.5,{a:'start',c:SOFT}) + `<text x="270" y="216" font-size="12" text-anchor="end" letter-spacing="1.5">XM-123456</text>`;
-
+const eventPic = (() => {
+  const L=[['home','總覽'],['letter','信件'],['people','人物'],['gift','活動'],['user','我的']];
+  return box(8,8,284,64,16) + L.map(([n,l],i)=>{ const x=14+i*55, a=i===3;
+    return box(x,18,51,44,12,a?'#FFFDF7':'#EEF3FD',a?'#E3DCCD':null)+icon(n,x+17,23,17,a?INK:DEEP)+t(x+25.5,55,l,10.5,{c:a?INK:DEEP}); }).join('')
+    + `<circle cx="${14+3*55+44}" cy="25" r="3.5" fill="${RING}"/>` + ringRect(14+3*55-4,14,59,52,15);
+})();
 const header = box(8,8,284,96,18) + koala(18,22,64)
   + t(94,48,'無尾熊郵局',14,{a:'start'}) + t(94,66,'收到的每一封信',9,{a:'start',c:DEEP})
   + pill(208,16,72,22,'#E9F0FD','說明',10,DEEP) + pill(208,44,72,22,'#E9F0FD','重整',10,DEEP) + pill(208,72,72,22,'#E9F0FD','公告',10,DEEP)
@@ -2535,14 +2531,14 @@ const header = box(8,8,284,96,18) + koala(18,22,64)
   + ringRect(204,40,80,30,15);
 
 const FEATS = [
-  {h:'註冊和登入', tag:'第一次使用', p:'打開網站後點「註冊」，填暱稱（筆名）、帳號和密碼就開好你自己的郵局。帳號只能用英文字母和數字，不能和別人重複，註冊後也不能改。', m:svg(184,login,'登入與註冊畫面')},
+  {h:'註冊和登入', tag:'第一次使用', p:'打開網站後點「註冊」，填暱稱（筆名）、帳號、密碼和管理員給你的邀請碼，就開好你自己的郵局。每組邀請碼只能使用一次。帳號只能用英文字母和數字，不能和別人重複，註冊後也不能改。', m:svg(184,login,'登入與註冊畫面')},
   {h:'總覽', p:'一打開就看到收到幾封信、信件和明信片各幾封。最上面會提醒好友邀請和好友寄給你、正在路上的信；黃色區塊是還沒寄出的信，下面還有信從哪些城市和國家來、最常通信的人。', m:svg(252,overview,'總覽頁面')},
   {h:'新增信件', p:'按右下角綠色的「新增信件」，選類型、方向、是誰寄的、管道和地區。還沒建立的人，選「新增人物…」直接打名字。方向選「收到」時可以勾「要回信」，儲存後會自動加一筆給同一個人的待寄出。常用的類型、管道，和要不要預設勾選「要回信」，可以在「我的 → 信件預設」設定。', m:svg(242,newMail,'新增信件表單')},
   {h:'找信和匯出', p:'「信件」分頁可以依類型、收到或寄出、管道、地區篩選，也能搜尋名字、地點、編號和備註。點一封信可以看詳細內容、編輯或刪除。按「匯出」可以把目前篩選出來的信件存成 CSV 檔，用 Excel 或 Google 試算表打開。', m:svg(232,list,'信件列表與篩選')},
   {h:'待寄出', p:'還沒寄的信先記成「待寄出」，免得忘記回信。寄出後按「已寄出」，確認後日期會自動改成今天。要一次寄好幾封時，在總覽的待寄出勾選要寄的信（或按「全選」），再按「勾選的已寄出」。', m:svg(186,pending,'待寄出清單，可以勾選多封')},
   {h:'人物', p:'記錄你的筆友和卡友：管道、來自哪裡、地址和備註。如果最後一封是對方寄來的，名字旁會出現「待回覆」，在篩選選「待回覆」，等最久的人會排在最前面；也能篩選好友、等待確認和非好友。點進去可以看所有往來、複製地址，用「待寄出」「收到」「寄出」直接幫這個人記一筆。暫時不想回信，可以按「這次不提示」，收到新的信時會再提醒。', m:svg(206,people,'人物列表與待回覆標籤')},
   {h:'好友', tag:'新功能', p:'在「我的 → 好友」可以看到你的好友代碼。把代碼給筆友，對方在人物頁（或新增人物時）輸入代碼、附上打招呼訊息送出邀請，你在「我的」看完訊息按「接受」，就會成為好友。好友可以看到彼此的「關於我」和你選擇公開的資料（地址預設不公開），好友記下寄給你的信時，你這邊也會顯示「正在路上的信」。在人物頁刪除好友的人物，好友關係和邀請會一起移除，信件紀錄會保留。', m:svg(206,friends,'好友代碼與好友邀請')},
-  {h:'活動', tag:'新功能', p:'有活動時，下方會出現「活動」分頁。報名期間填好收件地址和自我介紹就完成報名（可以直接帶入「我的」資料），活動開始前都能修改或退出。活動開始後按「抽出隨機收件人」，會拿到對方的地址、自我介紹和一組代碼，寄出時把代碼寫在卡片上。收件人清單只顯示筆名、代碼和對方收到了沒，點一下才會看到地址；寄出後按「已寄出」，會自動在信件加一筆寄出紀錄，備註寫上活動名稱和代碼。收到活動卡片時，在「最後填寫代碼」的時間前，把卡片上的代碼輸入到活動頁，寄件人那邊就會顯示「已收到」。抽獎是抽代碼，只有寄出而且對方登錄收到的代碼才有資格，抽中的代碼寄件人和收件人都有獎，中獎代碼會在「得獎公布」期間顯示在活動頁，公布結束後活動就會收起來。', m:svg(232,eventPic,'活動頁面：進度條與抽收件人')},
+  {h:'活動', tag:'新功能', p:'有活動的時候，分頁列會多出「活動」分頁，有新活動可以報名時還會出現小紅點。活動的報名方式、時間和說明都寫在活動頁面裡。', m:svg(80,eventPic,'有活動時出現的活動分頁')},
   {h:'公告和重整', tag:'新功能', p:'右上角的「公告」有新消息時會出現小紅點。「重整」會重新讀取所有資料：信件、人物、好友、活動和公告，在別的手機或電腦改過資料、或想看好友有沒有接受邀請時按一下就好。', m:svg(112,header,'右上角的說明、重整、公告按鈕')},
   {h:'我的資料', p:'在「我的」可以改暱稱、中文地址和英文地址，按複製按鈕就能把地址傳給筆友。也能寫「關於我」（只有好友看得到）、設定好友打招呼訊息和要公開給好友的資料、信件預設，以及修改密碼和登出。', m:svg(230,me,'我的資料頁面')},
   {h:'忘記密碼', p:'請聯絡無尾熊郵局管理員，告訴他你的帳號。管理員會給你一組臨時密碼，用它登入後會自動跳到「我的」頁面，請馬上改成新密碼。', m:svg(160,forgot,'用臨時密碼登入後修改密碼')}
@@ -2691,7 +2687,7 @@ document.addEventListener('click', async e => {
   if(act==='tab'){
     const again = view === el.dataset.v;
     view = el.dataset.v; if(view === 'events' && again){ EV.id = ''; EV.state = null; EV.edit = false; }
-    render(); window.scrollTo(0,0); if(appOn()) refreshFriends(5000);
+    render(); window.scrollTo(0,0); if(appOn()) refreshFriends(1500);
     if(view === 'events' && appOn()){ loadEvents(); if(EV.id && EV.state && !EV.edit) loadEventState(EV.id); }
   }
   if(act && /^ev[A-Z]/.test(act)){ await evAction(act, el); return; }
