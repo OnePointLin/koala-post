@@ -1727,7 +1727,10 @@ function twParts(iso){ const o = {}; TW_DT.formatToParts(new Date(iso)).forEach(
 function evTime(iso, isEnd){
   if(!iso) return '';
   let d = new Date(iso), p = twParts(d);
-  if(isEnd && p.hour === '00' && p.minute === '00'){ p = twParts(new Date(+d - 60000)); return `${+p.month}/${+p.day}`; }
+  if(p.hour === '00' && p.minute === '00'){
+    if(isEnd) p = twParts(new Date(+d - 60000));
+    return `${+p.month}/${+p.day}`;
+  }
   return `${+p.month}/${+p.day} ${p.hour}:${p.minute}`;
 }
 const evRange = (a, b) => `${evTime(a)} – ${evTime(b, true)}`;
