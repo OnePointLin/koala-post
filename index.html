@@ -778,6 +778,7 @@ function askConfirm(text, opt){
 const SUPABASE_URL = 'https://wjrncnawkzptdsfhzefg.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_SgB1YEmcF4phewUhaVxIyQ_gmyHhHLQ';
 const ACCOUNT_DOMAIN = 'koala-post.app';
+
 const IS_LIVE = !!(SUPABASE_URL && SUPABASE_KEY);
 const sb = (IS_LIVE && window.supabase)
   ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {auth:{persistSession:true, autoRefreshToken:true, storageKey:'koalaPostAuth'}})
@@ -1723,9 +1724,10 @@ const evPhaseOf = e => { const t = Date.now();
 const evNew = () => EVENTS.some(e => !e.joined && evPhaseOf(e) === 'signup');
 const TW_DT = new Intl.DateTimeFormat('en-CA', {timeZone:'Asia/Taipei', year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', hourCycle:'h23'});
 function twParts(iso){ const o = {}; TW_DT.formatToParts(new Date(iso)).forEach(p => o[p.type] = p.value); return o; }
-function evTime(iso){
+function evTime(iso, isEnd){
   if(!iso) return '';
-  const p = twParts(new Date(iso));
+  let d = new Date(iso), p = twParts(d);
+  if(isEnd && p.hour === '00' && p.minute === '00'){ p = twParts(new Date(+d - 60000)); return `${+p.month}/${+p.day}`; }
   return `${+p.month}/${+p.day} ${p.hour}:${p.minute}`;
 }
 const evRange = (a, b) => `${evTime(a)} – ${evTime(b, true)}`;
@@ -1834,7 +1836,7 @@ function evPageHTML(st){
       </section>`;
     main += `<section class="paper card"><h3>${ic('inbox')}我收到的卡片${st.received.length ? `（${st.received.length}）` : ''}</h3>
       ${!st.canReceive ? '<p class="muted small" style="margin:-4px 0 8px">登錄代碼的時間已經結束</p>' : ''}
-      ${st.canReceive ? `<p class="muted small" style="margin:-4px 0 8px">收到活動卡片時，請在 ${evTime(e.receiveEnd, true)} 前把卡片上的代碼輸入在這裡，寄件人就會知道你收到了</p>
+      ${st.canReceive ? `<p class="muted small" style="margin:-4px 0 8px">收到活動卡片時，把卡片上的代碼輸入在這裡（最晚到 ${evTime(e.receiveEnd, true)}），寄件人就會知道你收到了</p>
       <form id="evRecv" class="ev-recv"><input class="in" name="code" placeholder="${esc(e.code)}-123456" autocapitalize="characters" autocomplete="off" spellcheck="false" maxlength="12"><button class="btn blue" type="submit">${ic('check','s')}登錄</button></form>` : ''}
       ${st.received.length ? st.received.map(r => `<div class="row ev-got"><span class="ev-code-s">${esc(r.code)}</span><div class="grow"><div>來自 ${esc(r.nickname)}</div><div class="sub">${evDate(r.receivedAt)} 登錄</div></div>${ic('check','s')}</div>`).join('') : (st.canReceive ? '' : '<p class="empty-s">還沒有登錄收到的卡片</p>')}
     </section>`;
