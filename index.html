@@ -545,7 +545,7 @@ textarea.in.addr{min-height:64px}
 
 <datalist id="countries"></datalist>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="supabase.min.js"></script>
 <script>
 /* ================= 常數 ================= */
 const TW_CITIES = ['基隆市','臺北市','新北市','桃園市','新竹市','新竹縣','苗栗縣','臺中市','彰化縣','南投縣','雲林縣','嘉義市','嘉義縣','臺南市','高雄市','屏東縣','宜蘭縣','花蓮縣','臺東縣','澎湖縣','金門縣','連江縣'];
@@ -1863,7 +1863,7 @@ function evDetailHTML(d, i, e){
   return `<div class="ev-rcp">
     <div class="ev-rcp-head"><div class="grow"><div class="ev-rcp-name">${esc(d.nickname)}</div><div class="sub">${evDate(d.createdAt)} 抽到</div></div>${evStatus(d)}</div>
     <div class="ev-code"><div class="ev-lbl">寫在卡片上的代碼</div><b>${esc(d.code)}</b></div>
-    <div class="ev-lbl">收件地址</div><div class="ev-pre">${esc(d.address) || '<span class="muted">（對方已退出或沒有地址）</span>'}</div>
+    <div class="ev-lbl">收件地址</div><div class="ev-pre">${esc(d.address) || '<span class="muted">（地址已刪除）</span>'}</div>
     ${d.about ? `<div class="ev-lbl" style="margin-top:10px">自我介紹</div><div class="ev-pre">${esc(d.about)}</div>` : ''}
     ${d.receivedAt ? `<p class="muted small" style="margin:10px 0 0">對方在 ${evDate(d.receivedAt)} 登錄收到</p>` : ''}
     <div class="ev-sent">${sent ? `<span class="muted small">${ic('check','s')} ${esc(sent.date)} 已記錄寄出，可以在「信件」找到</span>`
